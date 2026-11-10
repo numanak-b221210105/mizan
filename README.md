@@ -52,7 +52,7 @@ Runs on **Windows, macOS and Linux** (CI tests all three). Requires Python 3.11+
 **Windows:** double-click `start.bat`
 **macOS / Linux:** `./start.sh`
 
-The script creates a virtual environment, installs dependencies, and opens the web UI at **http://localhost:8000**. Try the sample buttons, or drop `samples/ornek-fatura.pdf` onto the page.
+The script creates a virtual environment, installs dependencies, and opens the web UI at **http://127.0.0.1:8000** as soon as the server is ready. Try the sample buttons, or drop `samples/ornek-fatura.pdf` onto the page.
 
 <details>
 <summary>Manual setup</summary>
@@ -62,7 +62,7 @@ git clone https://github.com/numanak-b221210105/mizan && cd mizan
 python -m venv .venv
 .venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
 pip install -e ".[dev]"
-uvicorn mizan.api:app --reload     # web UI: http://localhost:8000, API docs: /docs
+python -m mizan.serve              # opens the web UI when ready; API docs at /docs
 mizan samples/ornek-fatura.pdf --strategy rules   # CLI
 ```
 </details>
@@ -123,7 +123,7 @@ Current results (`rules`):
 ## Tests
 
 ```bash
-pytest -q              # 28 tests, runs offline
+pytest -q              # 29 tests, runs offline
 ruff check . && ruff format --check .
 ```
 

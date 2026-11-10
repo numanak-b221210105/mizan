@@ -54,3 +54,15 @@ def test_extract_pdf():
     r = client.post("/extract/file?strategy=rules", files={"file": ("fatura.pdf", data, "application/pdf")})
     assert r.status_code == 200
     assert r.json()["errors"] == []
+
+
+def test_serve_refuses_busy_port():
+    import socket
+
+    from mizan.serve import main
+
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        s.listen()
+        port = s.getsockname()[1]
+        assert main(["--port", str(port), "--no-browser"]) == 1
