@@ -1,0 +1,23 @@
+E-FATURA
+Fatura No: FTR2026000000001
+Fatura Tarihi: 22.02.2026
+
+SATICI
+Ünvan: Karadeniz Tekstil Ltd. Şti.
+Vergi Dairesi: Trabzon
+VKN: 8196001338
+
+ALICI
+Ünvan: Deniz Kimya San. ve Tic. A.Ş.
+Vergi Dairesi: Kozyatağı
+VKN: 9083863794
+
+Para Birimi: TRY
+
+KALEMLER
+Açıklama | Miktar | Birim Fiyat | KDV % | Tutar
+Nakliye hizmeti | 4 | 7.464,00 | 20 | 29.856,00
+
+Mal Hizmet Toplam Tutarı: 29.856,00 TL
+Hesaplanan KDV: 5.971,20 TL
+Ödenecek Tutar: 35.827,20 TL

@@ -1,0 +1,41 @@
+{
+  "invoice_no": "FTR2026000000006",
+  "issue_date": "2026-09-06",
+  "seller": {
+    "name": "Deniz Kimya San. ve Tic. A.Ş.",
+    "tax_id": "1822782489",
+    "tax_office": "Kozyatağı"
+  },
+  "buyer": {
+    "name": "Anadolu Lojistik A.Ş.",
+    "tax_id": "6383465787",
+    "tax_office": "Ankara Kurumlar"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Palet (ahşap)",
+      "quantity": "6",
+      "unit_price": "10226.00",
+      "vat_rate": 10,
+      "line_total": "61356.00"
+    },
+    {
+      "description": "Etil Asetat 200 kg varil",
+      "quantity": "1",
+      "unit_price": "8042.99",
+      "vat_rate": 20,
+      "line_total": "8042.99"
+    },
+    {
+      "description": "Teknik danışmanlık (saat)",
+      "quantity": "2",
+      "unit_price": "2956.99",
+      "vat_rate": 20,
+      "line_total": "5913.98"
+    }
+  ],
+  "subtotal": "75312.97",
+  "vat_total": "8926.99",
+  "grand_total": "84239.96"
+}

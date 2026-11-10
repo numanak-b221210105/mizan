@@ -1,0 +1,27 @@
+{
+  "invoice_no": "FTR2026000000001",
+  "issue_date": "2026-02-22",
+  "seller": {
+    "name": "Karadeniz Tekstil Ltd. Şti.",
+    "tax_id": "8196001338",
+    "tax_office": "Trabzon"
+  },
+  "buyer": {
+    "name": "Deniz Kimya San. ve Tic. A.Ş.",
+    "tax_id": "9083863794",
+    "tax_office": "Kozyatağı"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Nakliye hizmeti",
+      "quantity": "4",
+      "unit_price": "7464.00",
+      "vat_rate": 20,
+      "line_total": "29856.00"
+    }
+  ],
+  "subtotal": "29856.00",
+  "vat_total": "5971.20",
+  "grand_total": "35827.20"
+}

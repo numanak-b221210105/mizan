@@ -1,0 +1,34 @@
+{
+  "invoice_no": "FTR2026000000007",
+  "issue_date": "2026-01-04",
+  "seller": {
+    "name": "Deniz Kimya San. ve Tic. A.Ş.",
+    "tax_id": "1031051834",
+    "tax_office": "Kozyatağı"
+  },
+  "buyer": {
+    "name": "Yıldız Boya Ltd. Şti.",
+    "tax_id": "7382997376",
+    "tax_office": "Adapazarı"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Bütil Asetat 180 kg varil",
+      "quantity": "1",
+      "unit_price": "19427.99",
+      "vat_rate": 20,
+      "line_total": "19427.99"
+    },
+    {
+      "description": "IBC Tank 1000 L",
+      "quantity": "4",
+      "unit_price": "19432.00",
+      "vat_rate": 20,
+      "line_total": "77728.00"
+    }
+  ],
+  "subtotal": "97155.99",
+  "vat_total": "19431.20",
+  "grand_total": "116587.19"
+}

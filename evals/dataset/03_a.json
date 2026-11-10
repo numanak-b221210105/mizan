@@ -1,0 +1,41 @@
+{
+  "invoice_no": "FTR2026000000003",
+  "issue_date": "2026-05-06",
+  "seller": {
+    "name": "Yıldız Boya Ltd. Şti.",
+    "tax_id": "2764835030",
+    "tax_office": "Adapazarı"
+  },
+  "buyer": {
+    "name": "Marmara Plastik A.Ş.",
+    "tax_id": "5641395376",
+    "tax_office": "Gebze"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Laboratuvar analizi",
+      "quantity": "12",
+      "unit_price": "22548.99",
+      "vat_rate": 20,
+      "line_total": "270587.88"
+    },
+    {
+      "description": "Gıda ambalaj filmi (rulo)",
+      "quantity": "2",
+      "unit_price": "20110.99",
+      "vat_rate": 10,
+      "line_total": "40221.98"
+    },
+    {
+      "description": "IBC Tank 1000 L",
+      "quantity": "3",
+      "unit_price": "17652.99",
+      "vat_rate": 20,
+      "line_total": "52958.97"
+    }
+  ],
+  "subtotal": "363768.83",
+  "vat_total": "68731.57",
+  "grand_total": "432500.40"
+}

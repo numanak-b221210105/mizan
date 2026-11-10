@@ -1,0 +1,24 @@
+E-FATURA
+Fatura No: FTR2026000000004
+Fatura Tarihi: 27.10.2026
+
+SATICI
+Ünvan: Karadeniz Tekstil Ltd. Şti.
+Vergi Dairesi: Trabzon
+VKN: 6965328710
+
+ALICI
+Ünvan: Ege Ambalaj San. Ltd. Şti.
+Vergi Dairesi: Bornova
+VKN: 1226916697
+
+Para Birimi: TRY
+
+KALEMLER
+Açıklama | Miktar | Birim Fiyat | KDV % | Tutar
+Nakliye hizmeti | 4 | 24.561,99 | 20 | 98.247,96
+Bütil Asetat 180 kg varil | 9 | 8.759,99 | 20 | 78.839,91
+
+Mal Hizmet Toplam Tutarı: 177.087,87 TL
+Hesaplanan KDV: 35.417,57 TL
+Ödenecek Tutar: 212.505,44 TL

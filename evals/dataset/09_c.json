@@ -1,0 +1,27 @@
+{
+  "invoice_no": "FTR2026000000009",
+  "issue_date": "2026-09-06",
+  "seller": {
+    "name": "Deniz Kimya San. ve Tic. A.Ş.",
+    "tax_id": "7360260647",
+    "tax_office": "Kozyatağı"
+  },
+  "buyer": {
+    "name": "Karadeniz Tekstil Ltd. Şti.",
+    "tax_id": "4687234309",
+    "tax_office": "Trabzon"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Bütil Asetat 180 kg varil",
+      "quantity": "4",
+      "unit_price": "5599.50",
+      "vat_rate": 20,
+      "line_total": "22398.00"
+    }
+  ],
+  "subtotal": "22398.00",
+  "vat_total": "4479.60",
+  "grand_total": "26877.60"
+}

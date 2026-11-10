@@ -1,0 +1,48 @@
+{
+  "invoice_no": "FTR2026000000002",
+  "issue_date": "2026-10-02",
+  "seller": {
+    "name": "Deniz Kimya San. ve Tic. A.Ş.",
+    "tax_id": "1618495931",
+    "tax_office": "Kozyatağı"
+  },
+  "buyer": {
+    "name": "Yıldız Boya Ltd. Şti.",
+    "tax_id": "0341316475",
+    "tax_office": "Adapazarı"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Gıda ambalaj filmi (rulo)",
+      "quantity": "6",
+      "unit_price": "3499.00",
+      "vat_rate": 10,
+      "line_total": "20994.00"
+    },
+    {
+      "description": "IBC Tank 1000 L",
+      "quantity": "7",
+      "unit_price": "3319.50",
+      "vat_rate": 20,
+      "line_total": "23236.50"
+    },
+    {
+      "description": "Bütil Asetat 180 kg varil",
+      "quantity": "6",
+      "unit_price": "19932.50",
+      "vat_rate": 20,
+      "line_total": "119595.00"
+    },
+    {
+      "description": "Palet (ahşap)",
+      "quantity": "1",
+      "unit_price": "24061.50",
+      "vat_rate": 10,
+      "line_total": "24061.50"
+    }
+  ],
+  "subtotal": "187887.00",
+  "vat_total": "33071.85",
+  "grand_total": "220958.85"
+}

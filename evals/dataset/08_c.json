@@ -1,0 +1,27 @@
+{
+  "invoice_no": "FTR2026000000008",
+  "issue_date": "2026-08-28",
+  "seller": {
+    "name": "Yıldız Boya Ltd. Şti.",
+    "tax_id": "0106513338",
+    "tax_office": "Adapazarı"
+  },
+  "buyer": {
+    "name": "Deniz Kimya San. ve Tic. A.Ş.",
+    "tax_id": "7262473178",
+    "tax_office": "Kozyatağı"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Teknik danışmanlık (saat)",
+      "quantity": "6",
+      "unit_price": "14029.50",
+      "vat_rate": 20,
+      "line_total": "84177.00"
+    }
+  ],
+  "subtotal": "84177.00",
+  "vat_total": "16835.40",
+  "grand_total": "101012.40"
+}

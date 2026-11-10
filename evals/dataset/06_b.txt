@@ -1,0 +1,21 @@
+FATURA
+Fatura Numarası: FTR2026000000006
+Düzenleme Tarihi: 6 Eylül 2026
+
+SATICI BİLGİLERİ
+Unvan: Deniz Kimya San. ve Tic. A.Ş.
+Vergi Dairesi: Kozyatağı
+VKN: 1822782489
+
+ALICI BİLGİLERİ
+Unvan: Anadolu Lojistik A.Ş.
+Vergi Dairesi: Ankara Kurumlar
+VKN: 6383465787
+
+Palet (ahşap) | 6 | 10.226,00 | %10 | 61.356,00
+Etil Asetat 200 kg varil | 1 | 8.042,99 | %20 | 8.042,99
+Teknik danışmanlık (saat) | 2 | 2.956,99 | %20 | 5.913,98
+
+Ara Toplam: 75.312,97
+Toplam KDV: 8.926,99
+Genel Toplam: 84.239,96

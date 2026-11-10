@@ -1,0 +1,20 @@
+FATURA
+Fatura Numarası: FTR2026000000007
+Düzenleme Tarihi: 4 Ocak 2026
+
+SATICI BİLGİLERİ
+Unvan: Deniz Kimya San. ve Tic. A.Ş.
+Vergi Dairesi: Kozyatağı
+VKN: 1031051834
+
+ALICI BİLGİLERİ
+Unvan: Yıldız Boya Ltd. Şti.
+Vergi Dairesi: Adapazarı
+VKN: 7382997376
+
+Bütil Asetat 180 kg varil | 1 | 19.427,99 | %20 | 19.427,99
+IBC Tank 1000 L | 4 | 19.432,00 | %20 | 77.728,00
+
+Ara Toplam: 97.155,99
+Toplam KDV: 19.431,20
+Genel Toplam: 116.587,19

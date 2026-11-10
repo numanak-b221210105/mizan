@@ -1,0 +1,19 @@
+FATURA
+Fatura Numarası: FTR2026000000005
+Düzenleme Tarihi: 24 Haziran 2026
+
+SATICI BİLGİLERİ
+Unvan: Anadolu Lojistik A.Ş.
+Vergi Dairesi: Ankara Kurumlar
+VKN: 1462704828
+
+ALICI BİLGİLERİ
+Unvan: Marmara Plastik A.Ş.
+Vergi Dairesi: Gebze
+VKN: 1489325288
+
+Bütil Asetat 180 kg varil | 11 | 17.745,50 | %20 | 195.200,50
+
+Ara Toplam: 195.200,50
+Toplam KDV: 39.040,10
+Genel Toplam: 234.240,60

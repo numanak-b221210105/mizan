@@ -1,0 +1,27 @@
+{
+  "invoice_no": "FTR2026000000005",
+  "issue_date": "2026-06-24",
+  "seller": {
+    "name": "Anadolu Lojistik A.Ş.",
+    "tax_id": "1462704828",
+    "tax_office": "Ankara Kurumlar"
+  },
+  "buyer": {
+    "name": "Marmara Plastik A.Ş.",
+    "tax_id": "1489325288",
+    "tax_office": "Gebze"
+  },
+  "currency": "TRY",
+  "items": [
+    {
+      "description": "Bütil Asetat 180 kg varil",
+      "quantity": "11",
+      "unit_price": "17745.50",
+      "vat_rate": 20,
+      "line_total": "195200.50"
+    }
+  ],
+  "subtotal": "195200.50",
+  "vat_total": "39040.10",
+  "grand_total": "234240.60"
+}
