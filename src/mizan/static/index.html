@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mizan — invoice extraction that checks the math</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #ffffff; --ink: #1c1f1d; --muted: #6b716d;
+    --line: #e3e1da; --accent: #1f5f4a; --accent-soft: #e4efe9;
+    --bad: #a3352b; --bad-soft: #f7e6e3; --warn: #8a6410; --warn-soft: #f6eedb;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--ink); }
+  header { display: flex; align-items: baseline; gap: 14px; padding: 22px 32px;
+           border-bottom: 1px solid var(--line); background: var(--panel); }
+  .logo { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  .logo span { color: var(--accent); }
+  .tag { color: var(--muted); }
+  header a { margin-left: auto; color: var(--muted); text-decoration: none; font-size: 14px; }
+  header a:hover { color: var(--accent); }
+  main { display: grid; grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.3fr);
+         gap: 24px; padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 16px; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+       margin: 0 0 12px; font-weight: 600; }
+  .drop { border: 1.5px dashed var(--line); border-radius: 10px; padding: 14px; text-align: center;
+          color: var(--muted); cursor: pointer; transition: .15s; margin-bottom: 12px; }
+  .drop.over, .drop:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  textarea { width: 100%; min-height: 360px; resize: vertical; border: 1px solid var(--line);
+             border-radius: 10px; padding: 12px; font: 13px/1.5 var(--mono); color: var(--ink); background: #fbfaf7; }
+  textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 7px 12px; cursor: pointer; font: inherit;
+                font-size: 13px; color: var(--muted); }
+  .seg button.on { background: var(--ink); color: #fff; }
+  .ghost { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 7px 12px;
+           cursor: pointer; font: inherit; font-size: 13px; color: var(--ink); }
+  .ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .primary { margin-left: auto; border: 0; background: var(--accent); color: #fff; border-radius: 8px;
+             padding: 9px 18px; font: inherit; font-weight: 600; cursor: pointer; }
+  .primary:disabled { opacity: .5; cursor: wait; }
+  .empty { color: var(--muted); text-align: center; padding: 80px 20px; }
+  .status { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; margin-bottom: 18px; }
+  .status.ok { background: var(--accent-soft); color: var(--accent); }
+  .status.bad { background: var(--bad-soft); color: var(--bad); }
+  .status b { font-size: 16px; }
+  .status small { margin-left: auto; font-family: var(--mono); opacity: .8; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+  .kv { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .kv label { display: block; font-size: 12px; color: var(--muted); }
+  .kv div { font-weight: 600; overflow-wrap: anywhere; }
+  .kv small { color: var(--muted); font-family: var(--mono); font-weight: 400; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 14px; }
+  th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 6px 8px;
+       border-bottom: 1px solid var(--line); }
+  td { padding: 8px; border-bottom: 1px solid var(--line); }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tfoot td { border: 0; padding: 4px 8px; }
+  tfoot tr:last-child td { font-weight: 700; font-size: 16px; padding-top: 8px; }
+  .msgs { list-style: none; padding: 0; margin: 0 0 14px; }
+  .msgs li { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 14px; }
+  .msgs .e { background: var(--bad-soft); color: var(--bad); }
+  .msgs .w { background: var(--warn-soft); color: var(--warn); }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  pre { background: #1c1f1d; color: #e8e6df; padding: 14px; border-radius: 10px; overflow: auto;
+        font: 12px/1.5 var(--mono); max-height: 360px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Mizan<span>.</span></div>
+  <div class="tag">Invoice extraction that checks the math</div>
+  <a href="/docs">API docs →</a>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Invoice</h2>
+    <div class="drop" id="drop">Drop a <b>.pdf</b> or <b>.txt</b> invoice here, or click to choose
+      <input type="file" id="file" accept=".pdf,.txt" hidden></div>
+    <textarea id="text" placeholder="…or paste invoice text"></textarea>
+    <div class="row">
+      <div class="seg" id="strategy">
+        <button data-v="auto" class="on" title="Rules first, LLM fallback">Auto</button>
+        <button data-v="rules" title="Regex only, free">Rules</button>
+        <button data-v="llm" title="LLM only">LLM</button>
+      </div>
+      <button class="ghost" data-sample="std">Sample: standard</button>
+      <button class="ghost" data-sample="free">Sample: free-form</button>
+      <button class="primary" id="run">Extract</button>
+    </div>
+  </section>
+
+  <section class="panel" id="out">
+    <h2>Result</h2>
+    <div class="empty">Load a sample or paste an invoice, then press <b>Extract</b>.</div>
+  </section>
+</main>
+
+<script>
+const SAMPLES = {
+  std: `E-FATURA
+Fatura No: FTR2026000000001
+Fatura Tarihi: 22.02.2026
+
+SATICI
+Ünvan: Karadeniz Tekstil Ltd. Şti.
+Vergi Dairesi: Trabzon
+VKN: 8196001338
+
+ALICI
+Ünvan: Deniz Kimya San. ve Tic. A.Ş.
+Vergi Dairesi: Kozyatağı
+VKN: 9083863794
+
+Para Birimi: TRY
+
+KALEMLER
+Açıklama | Miktar | Birim Fiyat | KDV % | Tutar
+Nakliye hizmeti | 4 | 7.464,00 | 20 | 29.856,00
+Palet (ahşap) | 10 | 350,00 | 10 | 3.500,00
+
+Mal Hizmet Toplam Tutarı: 33.356,00 TL
+Hesaplanan KDV: 6.321,20 TL
+Ödenecek Tutar: 39.677,20 TL`,
+  free: `Yıldız Boya Ltd. Şti.
+Adapazarı V.D. - 0106513338
+
+Sayın Deniz Kimya San. ve Tic. A.Ş. (Kozyatağı V.D. 7262473178),
+28/08/2026 tarihli ve FTR2026000000008 numaralı faturanız aşağıdadır.
+
+- 6 adet Teknik danışmanlık (saat), birimi 14.029,50 TL (KDV %20), toplam 84.177,00 TL
+
+KDV hariç 84.177,00 TL, KDV 16.835,40 TL olmak üzere
+toplam 101.012,40 TL ödemenizi rica ederiz.`,
+};
+
+const $ = (s) => document.querySelector(s);
+const textEl = $("#text"), out = $("#out"), runBtn = $("#run");
+let strategy = "auto", pendingFile = null;
+
+$("#strategy").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#strategy button").forEach((x) => x.classList.toggle("on", x === b));
+  strategy = b.dataset.v;
+});
+document.querySelectorAll("[data-sample]").forEach((b) =>
+  b.addEventListener("click", () => { textEl.value = SAMPLES[b.dataset.sample]; pendingFile = null; setDrop(); }));
+
+const drop = $("#drop"), fileInput = $("#file");
+const setDrop = (name) => drop.innerHTML = name
+  ? `Selected <b>${esc(name)}</b> — press Extract` + fileInput.outerHTML
+  : drop.dataset.html;
+drop.dataset.html = drop.innerHTML;
+drop.addEventListener("click", () => drop.querySelector("input").click());
+drop.addEventListener("change", (e) => { if (e.target.files[0]) pick(e.target.files[0]); });
+["dragover", "dragenter"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, () => drop.classList.remove("over")));
+drop.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) pick(e.dataTransfer.files[0]); });
+function pick(f) { pendingFile = f; textEl.value = ""; setDrop(f.name); }
+
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+const money = (v, cur = "TRY") => Number(v).toLocaleString("tr-TR", { style: "currency", currency: cur });
+
+runBtn.addEventListener("click", async () => {
+  runBtn.disabled = true; runBtn.textContent = "Extracting…";
+  try {
+    let res;
+    if (pendingFile) {
+      const fd = new FormData(); fd.append("file", pendingFile);
+      res = await fetch(`/extract/file?strategy=${strategy}`, { method: "POST", body: fd });
+    } else {
+      res = await fetch(`/extract/text?strategy=${strategy}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: textEl.value }),
+      });
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+    render(data);
+  } catch (err) {
+    out.innerHTML = `<h2>Result</h2><div class="status bad"><b>Request failed</b></div><ul class="msgs"><li class="e">${esc(err.message)}</li></ul>`;
+  } finally { runBtn.disabled = false; runBtn.textContent = "Extract"; }
+});
+
+function render(r) {
+  const inv = r.invoice, ok = inv && r.errors.length === 0;
+  let html = `<h2>Result</h2>
+    <div class="status ${ok ? "ok" : "bad"}">
+      <b>${ok ? "✓ Balanced" : inv ? "✗ Numbers don't add up" : "✗ Could not extract"}</b>
+      <span>${ok ? "All cross-checks passed" : `${r.errors.length} error(s)`}</span>
+      <small>extractor: ${esc(r.extractor)}</small>
+    </div>`;
+  const msgs = [...r.errors.map((m) => `<li class="e">${esc(m)}</li>`), ...r.warnings.map((m) => `<li class="w">${esc(m)}</li>`)];
+  if (msgs.length) html += `<ul class="msgs">${msgs.join("")}</ul>`;
+  if (inv) {
+    const cur = inv.currency;
+    html += `<div class="grid">
+      <div class="kv"><label>Invoice no</label><div>${esc(inv.invoice_no)}</div></div>
+      <div class="kv"><label>Issue date</label><div>${esc(inv.issue_date)}</div></div>
+      <div class="kv"><label>Seller</label><div>${esc(inv.seller.name)}</div><small>${esc(inv.seller.tax_office ?? "")} · ${esc(inv.seller.tax_id ?? "—")}</small></div>
+      <div class="kv"><label>Buyer</label><div>${esc(inv.buyer.name)}</div><small>${esc(inv.buyer.tax_office ?? "")} · ${esc(inv.buyer.tax_id ?? "—")}</small></div>
+    </div>
+    <table><thead><tr><th>Item</th><th class="n">Qty</th><th class="n">Unit price</th><th class="n">VAT</th><th class="n">Total</th></tr></thead><tbody>
+    ${inv.items.map((i) => `<tr><td>${esc(i.description)}</td><td class="n">${esc(i.quantity)}</td><td class="n">${money(i.unit_price, cur)}</td><td class="n">%${i.vat_rate}</td><td class="n">${money(i.line_total, cur)}</td></tr>`).join("")}
+    </tbody><tfoot>
+      <tr><td colspan="4" class="n">Subtotal</td><td class="n">${money(inv.subtotal, cur)}</td></tr>
+      <tr><td colspan="4" class="n">VAT</td><td class="n">${money(inv.vat_total, cur)}</td></tr>
+      <tr><td colspan="4" class="n">Payable</td><td class="n">${money(inv.grand_total, cur)}</td></tr>
+    </tfoot></table>`;
+  }
+  html += `<details><summary>Raw JSON</summary><pre>${esc(JSON.stringify(r, null, 2))}</pre></details>`;
+  out.innerHTML = html;
+}
+</script>
+</body>
+</html>
