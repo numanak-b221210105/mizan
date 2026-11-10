@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mizan"
+version = "1.0.0"
+description = "Invoice extraction that checks the math: rules-first, LLM-fallback, validated Turkish invoice parsing"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Numan AK" }]
+requires-python = ">=3.11"
+dependencies = [
+  "openai>=1.40",
+  "fastapi>=0.110",
+  "pydantic>=2.6",
+  "pypdf>=4.0",
+  "python-multipart>=0.0.9",
+  "uvicorn[standard]>=0.29",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.5"]
+
+[project.scripts]
+mizan = "mizan.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mizan"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+src = ["src"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.File", "fastapi.Query"]
