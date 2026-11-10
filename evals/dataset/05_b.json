@@ -1,27 +1,48 @@
 {
   "invoice_no": "FTR2026000000005",
-  "issue_date": "2026-06-24",
+  "issue_date": "2026-05-09",
   "seller": {
-    "name": "Anadolu Lojistik A.Ş.",
-    "tax_id": "1462704828",
-    "tax_office": "Ankara Kurumlar"
+    "name": "Yıldız Boya Ltd. Şti.",
+    "tax_id": "8018451468",
+    "tax_office": "Adapazarı"
   },
   "buyer": {
-    "name": "Marmara Plastik A.Ş.",
-    "tax_id": "1489325288",
-    "tax_office": "Gebze"
+    "name": "Karadeniz Tekstil Ltd. Şti.",
+    "tax_id": "2704828141",
+    "tax_office": "Trabzon"
   },
   "currency": "TRY",
   "items": [
     {
       "description": "Bütil Asetat 180 kg varil",
-      "quantity": "11",
-      "unit_price": "17745.50",
+      "quantity": "3",
+      "unit_price": "20710.00",
       "vat_rate": 20,
-      "line_total": "195200.50"
+      "line_total": "62130.00"
+    },
+    {
+      "description": "Teknik danışmanlık (saat)",
+      "quantity": "11",
+      "unit_price": "13983.99",
+      "vat_rate": 20,
+      "line_total": "153823.89"
+    },
+    {
+      "description": "Etil Asetat 200 kg varil",
+      "quantity": "2",
+      "unit_price": "12758.50",
+      "vat_rate": 20,
+      "line_total": "25517.00"
+    },
+    {
+      "description": "Gıda ambalaj filmi (rulo)",
+      "quantity": "10",
+      "unit_price": "15487.99",
+      "vat_rate": 10,
+      "line_total": "154879.90"
     }
   ],
-  "subtotal": "195200.50",
-  "vat_total": "39040.10",
-  "grand_total": "234240.60"
+  "subtotal": "396350.79",
+  "vat_total": "63782.17",
+  "grand_total": "460132.96"
 }

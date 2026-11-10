@@ -1,26 +1,23 @@
 E-FATURA
 Fatura No: FTR2026000000002
-Fatura Tarihi: 02.10.2026
+Fatura Tarihi: 23.05.2026
 
 SATICI
-Ünvan: Deniz Kimya San. ve Tic. A.Ş.
-Vergi Dairesi: Kozyatağı
-VKN: 1618495931
+Ünvan: Anadolu Lojistik A.Ş.
+Vergi Dairesi: Ankara Kurumlar
+VKN: 2351161555
 
 ALICI
-Ünvan: Yıldız Boya Ltd. Şti.
-Vergi Dairesi: Adapazarı
-VKN: 0341316475
+Ünvan: Marmara Plastik A.Ş.
+Vergi Dairesi: Gebze
+VKN: 9407816188
 
 Para Birimi: TRY
 
 KALEMLER
 Açıklama | Miktar | Birim Fiyat | KDV % | Tutar
-Gıda ambalaj filmi (rulo) | 6 | 3.499,00 | 10 | 20.994,00
-IBC Tank 1000 L | 7 | 3.319,50 | 20 | 23.236,50
-Bütil Asetat 180 kg varil | 6 | 19.932,50 | 20 | 119.595,00
-Palet (ahşap) | 1 | 24.061,50 | 10 | 24.061,50
+IBC Tank 1000 L | 12 | 13.998,50 | 20 | 167.982,00
 
-Mal Hizmet Toplam Tutarı: 187.887,00 TL
-Hesaplanan KDV: 33.071,85 TL
-Ödenecek Tutar: 220.958,85 TL
+Mal Hizmet Toplam Tutarı: 167.982,00 TL
+Hesaplanan KDV: 33.596,40 TL
+Ödenecek Tutar: 201.578,40 TL

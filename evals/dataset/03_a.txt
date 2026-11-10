@@ -1,25 +1,25 @@
 E-FATURA
 Fatura No: FTR2026000000003
-Fatura Tarihi: 06.05.2026
+Fatura Tarihi: 21.08.2026
 
 SATICI
-Ünvan: Yıldız Boya Ltd. Şti.
-Vergi Dairesi: Adapazarı
-VKN: 2764835030
-
-ALICI
 Ünvan: Marmara Plastik A.Ş.
 Vergi Dairesi: Gebze
-VKN: 5641395376
+VKN: 5255341929
+
+ALICI
+Ünvan: Anadolu Lojistik A.Ş.
+Vergi Dairesi: Ankara Kurumlar
+VKN: 8327648352
 
 Para Birimi: TRY
 
 KALEMLER
 Açıklama | Miktar | Birim Fiyat | KDV % | Tutar
-Laboratuvar analizi | 12 | 22.548,99 | 20 | 270.587,88
-Gıda ambalaj filmi (rulo) | 2 | 20.110,99 | 10 | 40.221,98
-IBC Tank 1000 L | 3 | 17.652,99 | 20 | 52.958,97
+Laboratuvar analizi | 1 | 21.818,00 | 20 | 21.818,00
+Gıda ambalaj filmi (rulo) | 5 | 2.764,00 | 10 | 13.820,00
+Etil Asetat 200 kg varil | 2 | 12.605,50 | 20 | 25.211,00
 
-Mal Hizmet Toplam Tutarı: 363.768,83 TL
-Hesaplanan KDV: 68.731,57 TL
-Ödenecek Tutar: 432.500,40 TL
+Mal Hizmet Toplam Tutarı: 60.849,00 TL
+Hesaplanan KDV: 10.787,80 TL
+Ödenecek Tutar: 71.636,80 TL

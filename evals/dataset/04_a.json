@@ -1,34 +1,27 @@
 {
   "invoice_no": "FTR2026000000004",
-  "issue_date": "2026-10-27",
+  "issue_date": "2026-04-19",
   "seller": {
-    "name": "Karadeniz Tekstil Ltd. Şti.",
-    "tax_id": "6965328710",
-    "tax_office": "Trabzon"
+    "name": "Deniz Kimya San. ve Tic. A.Ş.",
+    "tax_id": "9537672425",
+    "tax_office": "Kozyatağı"
   },
   "buyer": {
-    "name": "Ege Ambalaj San. Ltd. Şti.",
-    "tax_id": "1226916697",
-    "tax_office": "Bornova"
+    "name": "Yıldız Boya Ltd. Şti.",
+    "tax_id": "3884969659",
+    "tax_office": "Adapazarı"
   },
   "currency": "TRY",
   "items": [
     {
-      "description": "Nakliye hizmeti",
-      "quantity": "4",
-      "unit_price": "24561.99",
-      "vat_rate": 20,
-      "line_total": "98247.96"
-    },
-    {
-      "description": "Bütil Asetat 180 kg varil",
-      "quantity": "9",
-      "unit_price": "8759.99",
-      "vat_rate": 20,
-      "line_total": "78839.91"
+      "description": "Gıda ambalaj filmi (rulo)",
+      "quantity": "7",
+      "unit_price": "8923.00",
+      "vat_rate": 10,
+      "line_total": "62461.00"
     }
   ],
-  "subtotal": "177087.87",
-  "vat_total": "35417.57",
-  "grand_total": "212505.44"
+  "subtotal": "62461.00",
+  "vat_total": "6246.10",
+  "grand_total": "68707.10"
 }

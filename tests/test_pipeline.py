@@ -73,3 +73,35 @@ def test_llm_plain_json_fallback(fake_client):
     client = fake_client(truth, as_tool_call=False)
     res = extract(text, strategy="llm", llm=LLMExtractor(client=client, model="test"))
     assert res.ok, res.errors
+
+
+def test_result_has_checklist_and_vat_breakdown():
+    text, truth = load("03_a")
+    res = extract(text, strategy="rules")
+    ids = {c.id for c in res.checks}
+    assert {"totals_balance", "line_math", "items_sum", "vat_calc", "tax_id_checksum"} <= ids
+    assert all(c.passed for c in res.checks)
+    assert sum(v.vat for v in res.vat_breakdown) == Decimal(truth["vat_total"])
+    assert res.elapsed_ms is not None
+
+
+def test_tax_id_typo_is_a_warning_not_error(fake_client):
+    text, truth = load("09_c")
+    vkn = truth["seller"]["tax_id"]
+    typo = vkn[:-1] + str((int(vkn[-1]) + 1) % 10)
+    bad = {**truth, "seller": {**truth["seller"], "tax_id": typo}}
+    res = extract(text, strategy="llm", llm=LLMExtractor(client=fake_client(bad), model="test"))
+    assert res.ok  # tutarlar doğru, yalnızca uyarı
+    assert any("kontrol basamağı" in w for w in res.warnings)
+    assert next(c for c in res.checks if c.id == "tax_id_checksum").passed is False
+
+
+def test_auto_keeps_rule_result_when_llm_unavailable(monkeypatch):
+    """Kurallar faturayı okudu ama rakamlar tutmuyor; LLM yoksa yine de hatalı rakamlar gösterilmeli."""
+    monkeypatch.setenv("MIZAN_LLM_BASE_URL", "http://127.0.0.1:9/v1")
+    text, _ = load("02_a")
+    text = text.replace("Ödenecek Tutar:", "Ödenecek Tutar: 1").replace("Tutar: 1 ", "Tutar: 1")
+    res = extract(text, strategy="auto")
+    assert res.extractor == "rules" and res.invoice is not None
+    assert any("ödenecek tutara" in e for e in res.errors)
+    assert any("LLM" in w for w in res.warnings)

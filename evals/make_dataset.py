@@ -14,9 +14,13 @@ from __future__ import annotations
 
 import json
 import random
+import sys
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from mizan.ids import make_vkn
 
 OUT = Path(__file__).parent / "dataset"
 MONTHS = [
@@ -65,7 +69,8 @@ def tr(x: Decimal) -> str:
 
 
 def vkn(rng: random.Random) -> str:
-    return "".join(str(rng.randint(0, 9)) for _ in range(10))
+    """Kontrol basamağı geçerli rastgele VKN."""
+    return make_vkn("".join(str(rng.randint(0, 9)) for _ in range(9)))
 
 
 def make_invoice(rng: random.Random, idx: int) -> dict:

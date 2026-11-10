@@ -56,11 +56,29 @@ class Invoice(BaseModel):
         return v
 
 
+class Check(BaseModel):
+    """Tek bir doğrulama kuralının sonucu. passed=None: uygulanamadı (ör. kalem yok)."""
+
+    id: str
+    label: str
+    passed: bool | None
+    detail: str | None = None
+
+
+class VatLine(BaseModel):
+    rate: int
+    base: Decimal
+    vat: Decimal
+
+
 class ExtractionResult(BaseModel):
     invoice: Invoice | None
     extractor: str
     warnings: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
+    checks: list[Check] = Field(default_factory=list)
+    vat_breakdown: list[VatLine] = Field(default_factory=list)
+    elapsed_ms: int | None = None
 
     @property
     def ok(self) -> bool:

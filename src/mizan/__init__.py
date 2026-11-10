@@ -4,4 +4,4 @@ from .pipeline import extract
 from .schema import ExtractionResult, Invoice, LineItem, Party
 
 __all__ = ["ExtractionResult", "Invoice", "LineItem", "Party", "extract"]
-__version__ = "1.0.0"
+__version__ = "1.1.0"

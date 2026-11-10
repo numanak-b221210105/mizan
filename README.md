@@ -8,7 +8,24 @@
 
 > *Mizan* is the Turkish accounting term for a trial balance (and literally "scale"). Here, it's the step that makes sure the books balance before data goes anywhere.
 
-![Mizan web UI](docs/screenshot.png)
+![Mizan web UI](docs/screenshot.jpg)
+
+## Features
+
+- **7-point validation checklist** on every invoice: line math, items vs. subtotal, per-rate VAT, payable total, standard VAT rates, VKN/TCKN check digits, distinct parties
+- **Rules first, LLM fallback**: known layouts are parsed instantly for free; unknown layouts go to any OpenAI-compatible LLM (OpenAI, Gemini, Groq or local Ollama)
+- **Batch processing**: drop up to 20 invoices, get totals and a clean CSV for your accounting tool
+- **Exports**: JSON and Excel-friendly CSV (UTF-8 BOM, `;` separated) per invoice or per batch
+- **History** kept in your browser, **light/dark theme**, **Turkish/English UI**, first-run guide
+- **REST API** with OpenAPI docs, Docker image and cross-platform CI
+
+| Validation catches a tampered total | Batch processing |
+|---|---|
+| ![Validation](docs/validation.jpg) | ![Batch](docs/batch.jpg) |
+
+| Dark mode | First-run guide |
+|---|---|
+| ![Dark mode](docs/screenshot-dark.jpg) | ![Welcome](docs/welcome.jpg) |
 
 Companies still re-type invoice data by hand or pay for heavyweight OCR suites. `mizan` turns an invoice (PDF or text) into clean JSON and, crucially, **verifies** it: line items must add up, VAT must match the per-rate calculation, and payable must equal subtotal + VAT. An LLM that "hallucinates" a total gets caught.
 
@@ -85,8 +102,10 @@ Local example: install Ollama, run `ollama pull qwen2.5:7b`, then restart Mizan.
 |---|---|---|
 | `GET` | `/` | Web UI |
 | `GET` | `/health` | Liveness check |
+| `GET` | `/status` | Version and LLM connection status |
 | `POST` | `/extract/text?strategy=auto` | Body: `{"text": "..."}` |
 | `POST` | `/extract/file?strategy=auto` | Multipart upload, `.pdf` or `.txt`, max 5 MB |
+| `POST` | `/extract/batch?strategy=auto` | Up to 20 files (`files` field); returns per-file results and totals |
 
 ```bash
 curl -F "file=@evals/dataset/05_b.txt" "localhost:8000/extract/file?strategy=rules"
@@ -123,11 +142,11 @@ Current results (`rules`):
 ## Tests
 
 ```bash
-pytest -q              # 29 tests, runs offline
+pytest -q              # 40 tests, runs offline
 ruff check . && ruff format --check .
 ```
 
-Tests cover PDF and text input, Turkish number/date parsing (including the `"KASIM".lower() == "kasim"` trap), the rules → LLM fallback, that the LLM is **not** called when rules succeed, and that a hallucinated total or malformed tax ID is rejected.
+Tests cover PDF and text input, batch processing, VKN/TCKN check digits, Turkish number/date parsing (including the `"KASIM".lower() == "kasim"` trap), the rules → LLM fallback, that the LLM is **not** called when rules succeed, and that a hallucinated total or malformed tax ID is rejected.
 
 ## Roadmap
 

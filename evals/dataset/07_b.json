@@ -1,34 +1,48 @@
 {
   "invoice_no": "FTR2026000000007",
-  "issue_date": "2026-01-04",
+  "issue_date": "2026-02-02",
   "seller": {
-    "name": "Deniz Kimya San. ve Tic. A.Ş.",
-    "tax_id": "1031051834",
-    "tax_office": "Kozyatağı"
+    "name": "Marmara Plastik A.Ş.",
+    "tax_id": "5098393011",
+    "tax_office": "Gebze"
   },
   "buyer": {
-    "name": "Yıldız Boya Ltd. Şti.",
-    "tax_id": "7382997376",
-    "tax_office": "Adapazarı"
+    "name": "Anadolu Lojistik A.Ş.",
+    "tax_id": "0310518345",
+    "tax_office": "Ankara Kurumlar"
   },
   "currency": "TRY",
   "items": [
     {
-      "description": "Bütil Asetat 180 kg varil",
-      "quantity": "1",
-      "unit_price": "19427.99",
+      "description": "Laboratuvar analizi",
+      "quantity": "12",
+      "unit_price": "10364.50",
       "vat_rate": 20,
-      "line_total": "19427.99"
+      "line_total": "124374.00"
     },
     {
-      "description": "IBC Tank 1000 L",
-      "quantity": "4",
-      "unit_price": "19432.00",
+      "description": "Nakliye hizmeti",
+      "quantity": "11",
+      "unit_price": "21445.50",
       "vat_rate": 20,
-      "line_total": "77728.00"
+      "line_total": "235900.50"
+    },
+    {
+      "description": "Gıda ambalaj filmi (rulo)",
+      "quantity": "8",
+      "unit_price": "17109.50",
+      "vat_rate": 10,
+      "line_total": "136876.00"
+    },
+    {
+      "description": "Bütil Asetat 180 kg varil",
+      "quantity": "2",
+      "unit_price": "8273.00",
+      "vat_rate": 20,
+      "line_total": "16546.00"
     }
   ],
-  "subtotal": "97155.99",
-  "vat_total": "19431.20",
-  "grand_total": "116587.19"
+  "subtotal": "513696.50",
+  "vat_total": "89051.70",
+  "grand_total": "602748.20"
 }

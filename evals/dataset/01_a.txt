@@ -5,12 +5,12 @@ Fatura Tarihi: 22.02.2026
 SATICI
 Ünvan: Karadeniz Tekstil Ltd. Şti.
 Vergi Dairesi: Trabzon
-VKN: 8196001338
+VKN: 8196001331
 
 ALICI
 Ünvan: Deniz Kimya San. ve Tic. A.Ş.
 Vergi Dairesi: Kozyatağı
-VKN: 9083863794
+VKN: 8908386371
 
 Para Birimi: TRY
 

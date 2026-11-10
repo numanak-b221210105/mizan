@@ -56,13 +56,33 @@ def test_extract_pdf():
     assert r.json()["errors"] == []
 
 
-def test_serve_refuses_busy_port():
+def test_serve_skips_busy_port():
     import socket
 
-    from mizan.serve import main
+    from mizan.serve import _find_free_port
 
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         s.listen()
-        port = s.getsockname()[1]
-        assert main(["--port", str(port), "--no-browser"]) == 1
+        busy = s.getsockname()[1]
+        free = _find_free_port("127.0.0.1", busy)
+        assert free is not None and free != busy
+
+
+def test_batch():
+    files = [
+        ("files", (f"{s}.txt", (DATASET / f"{s}.txt").read_bytes(), "text/plain"))
+        for s in ["01_a", "05_b", "08_c"]
+    ]
+    r = client.post("/extract/batch?strategy=rules", files=files)
+    assert r.status_code == 200
+    s = r.json()["summary"]
+    assert s["count"] == 3 and s["balanced"] == 2 and s["failed"] == 1
+    assert float(s["total_payable"]["TRY"]) > 0
+
+
+def test_status_reports_unreachable_llm(monkeypatch):
+    monkeypatch.setenv("MIZAN_LLM_BASE_URL", "http://127.0.0.1:9/v1")
+    body = client.get("/status").json()
+    assert body["llm"]["reachable"] is False
+    assert body["llm"]["host"] == "127.0.0.1:9"

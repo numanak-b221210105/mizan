@@ -1,27 +1,34 @@
 {
   "invoice_no": "FTR2026000000008",
-  "issue_date": "2026-08-28",
+  "issue_date": "2026-04-08",
   "seller": {
-    "name": "Yıldız Boya Ltd. Şti.",
-    "tax_id": "0106513338",
-    "tax_office": "Adapazarı"
+    "name": "Karadeniz Tekstil Ltd. Şti.",
+    "tax_id": "1165667017",
+    "tax_office": "Trabzon"
   },
   "buyer": {
-    "name": "Deniz Kimya San. ve Tic. A.Ş.",
-    "tax_id": "7262473178",
-    "tax_office": "Kozyatağı"
+    "name": "Ege Ambalaj San. Ltd. Şti.",
+    "tax_id": "0651333875",
+    "tax_office": "Bornova"
   },
   "currency": "TRY",
   "items": [
     {
-      "description": "Teknik danışmanlık (saat)",
-      "quantity": "6",
-      "unit_price": "14029.50",
+      "description": "IBC Tank 1000 L",
+      "quantity": "10",
+      "unit_price": "19031.50",
       "vat_rate": 20,
-      "line_total": "84177.00"
+      "line_total": "190315.00"
+    },
+    {
+      "description": "Gıda ambalaj filmi (rulo)",
+      "quantity": "4",
+      "unit_price": "15648.50",
+      "vat_rate": 10,
+      "line_total": "62594.00"
     }
   ],
-  "subtotal": "84177.00",
-  "vat_total": "16835.40",
-  "grand_total": "101012.40"
+  "subtotal": "252909.00",
+  "vat_total": "44322.40",
+  "grand_total": "297231.40"
 }

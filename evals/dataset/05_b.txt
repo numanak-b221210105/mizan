@@ -1,19 +1,22 @@
 FATURA
 Fatura Numarası: FTR2026000000005
-Düzenleme Tarihi: 24 Haziran 2026
+Düzenleme Tarihi: 9 Mayıs 2026
 
 SATICI BİLGİLERİ
-Unvan: Anadolu Lojistik A.Ş.
-Vergi Dairesi: Ankara Kurumlar
-VKN: 1462704828
+Unvan: Yıldız Boya Ltd. Şti.
+Vergi Dairesi: Adapazarı
+VKN: 8018451468
 
 ALICI BİLGİLERİ
-Unvan: Marmara Plastik A.Ş.
-Vergi Dairesi: Gebze
-VKN: 1489325288
+Unvan: Karadeniz Tekstil Ltd. Şti.
+Vergi Dairesi: Trabzon
+VKN: 2704828141
 
-Bütil Asetat 180 kg varil | 11 | 17.745,50 | %20 | 195.200,50
+Bütil Asetat 180 kg varil | 3 | 20.710,00 | %20 | 62.130,00
+Teknik danışmanlık (saat) | 11 | 13.983,99 | %20 | 153.823,89
+Etil Asetat 200 kg varil | 2 | 12.758,50 | %20 | 25.517,00
+Gıda ambalaj filmi (rulo) | 10 | 15.487,99 | %10 | 154.879,90
 
-Ara Toplam: 195.200,50
-Toplam KDV: 39.040,10
-Genel Toplam: 234.240,60
+Ara Toplam: 396.350,79
+Toplam KDV: 63.782,17
+Genel Toplam: 460.132,96

@@ -21,6 +21,13 @@ def _port_in_use(host: str, port: int) -> bool:
         return s.connect_ex((host, port)) == 0
 
 
+def _find_free_port(host: str, start: int, attempts: int = 20) -> int | None:
+    for port in range(start, start + attempts):
+        if not _port_in_use(host, port):
+            return port
+    return None
+
+
 def _open_when_ready(url: str, timeout: float = 60) -> None:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -42,11 +49,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-browser", action="store_true")
     args = p.parse_args(argv)
 
-    url = f"http://{args.host}:{args.port}"
-    if _port_in_use(args.host, args.port):
-        print(f"{args.port} portu başka bir program tarafından kullanılıyor.")
-        print(f"Başka bir port deneyin:  python -m mizan.serve --port {args.port + 1}")
+    port = _find_free_port(args.host, args.port)
+    if port is None:
+        print(f"{args.port}-{args.port + 19} arasındaki tüm portlar dolu. Örnek: --port 9000")
         return 1
+    if port != args.port:
+        print(f"{args.port} portu başka bir program tarafından kullanılıyor, {port} kullanılacak.")
+    url = f"http://{args.host}:{port}"
 
     import uvicorn
 
@@ -57,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     uvicorn.run(
         "mizan.api:app",
         host=args.host,
-        port=args.port,
+        port=port,
         env_file=str(env_file) if env_file.exists() else None,
     )
     return 0

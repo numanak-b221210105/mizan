@@ -66,12 +66,14 @@ class LLMExtractor:
         # İstemci tembel (lazy) oluşturulur: bağlantı/anahtar sorunu, sunucuyu
         # çökertmek yerine çıkarım sonucuna okunabilir bir hata olarak düşer.
         if self._client is None:
+            import httpx
             from openai import OpenAI
 
             self._client = OpenAI(
                 base_url=os.getenv("MIZAN_LLM_BASE_URL", DEFAULT_BASE_URL),
                 api_key=os.getenv("MIZAN_LLM_API_KEY", "ollama"),
-                timeout=120,
+                timeout=httpx.Timeout(120, connect=3),
+                max_retries=1,
             )
         return self._client
 

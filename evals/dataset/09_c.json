@@ -1,27 +1,34 @@
 {
   "invoice_no": "FTR2026000000009",
-  "issue_date": "2026-09-06",
+  "issue_date": "2026-10-04",
   "seller": {
-    "name": "Deniz Kimya San. ve Tic. A.Ş.",
-    "tax_id": "7360260647",
-    "tax_office": "Kozyatağı"
+    "name": "Yıldız Boya Ltd. Şti.",
+    "tax_id": "0132677365",
+    "tax_office": "Adapazarı"
   },
   "buyer": {
-    "name": "Karadeniz Tekstil Ltd. Şti.",
-    "tax_id": "4687234309",
-    "tax_office": "Trabzon"
+    "name": "Ege Ambalaj San. Ltd. Şti.",
+    "tax_id": "0260647461",
+    "tax_office": "Bornova"
   },
   "currency": "TRY",
   "items": [
     {
-      "description": "Bütil Asetat 180 kg varil",
+      "description": "Nakliye hizmeti",
       "quantity": "4",
-      "unit_price": "5599.50",
+      "unit_price": "2620.50",
       "vat_rate": 20,
-      "line_total": "22398.00"
+      "line_total": "10482.00"
+    },
+    {
+      "description": "Laboratuvar analizi",
+      "quantity": "9",
+      "unit_price": "3358.00",
+      "vat_rate": 20,
+      "line_total": "30222.00"
     }
   ],
-  "subtotal": "22398.00",
-  "vat_total": "4479.60",
-  "grand_total": "26877.60"
+  "subtotal": "40704.00",
+  "vat_total": "8140.80",
+  "grand_total": "48844.80"
 }

@@ -1,27 +1,48 @@
 {
   "invoice_no": "FTR2026000000010",
-  "issue_date": "2026-09-02",
+  "issue_date": "2026-09-29",
   "seller": {
     "name": "Karadeniz Tekstil Ltd. Şti.",
-    "tax_id": "8820812191",
+    "tax_id": "2081219135",
     "tax_office": "Trabzon"
   },
   "buyer": {
     "name": "Anadolu Lojistik A.Ş.",
-    "tax_id": "3619399091",
+    "tax_id": "6193990916",
     "tax_office": "Ankara Kurumlar"
   },
   "currency": "TRY",
   "items": [
     {
-      "description": "Gıda ambalaj filmi (rulo)",
+      "description": "IBC Tank 1000 L",
       "quantity": "1",
-      "unit_price": "1793.99",
+      "unit_price": "19128.99",
+      "vat_rate": 20,
+      "line_total": "19128.99"
+    },
+    {
+      "description": "Bütil Asetat 180 kg varil",
+      "quantity": "9",
+      "unit_price": "2147.99",
+      "vat_rate": 20,
+      "line_total": "19331.91"
+    },
+    {
+      "description": "Palet (ahşap)",
+      "quantity": "6",
+      "unit_price": "2023.00",
       "vat_rate": 10,
-      "line_total": "1793.99"
+      "line_total": "12138.00"
+    },
+    {
+      "description": "Teknik danışmanlık (saat)",
+      "quantity": "10",
+      "unit_price": "15773.99",
+      "vat_rate": 20,
+      "line_total": "157739.90"
     }
   ],
-  "subtotal": "1793.99",
-  "vat_total": "179.40",
-  "grand_total": "1973.39"
+  "subtotal": "208338.80",
+  "vat_total": "40453.96",
+  "grand_total": "248792.76"
 }

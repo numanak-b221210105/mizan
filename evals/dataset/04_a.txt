@@ -1,24 +1,23 @@
 E-FATURA
 Fatura No: FTR2026000000004
-Fatura Tarihi: 27.10.2026
+Fatura Tarihi: 19.04.2026
 
 SATICI
-Ünvan: Karadeniz Tekstil Ltd. Şti.
-Vergi Dairesi: Trabzon
-VKN: 6965328710
+Ünvan: Deniz Kimya San. ve Tic. A.Ş.
+Vergi Dairesi: Kozyatağı
+VKN: 9537672425
 
 ALICI
-Ünvan: Ege Ambalaj San. Ltd. Şti.
-Vergi Dairesi: Bornova
-VKN: 1226916697
+Ünvan: Yıldız Boya Ltd. Şti.
+Vergi Dairesi: Adapazarı
+VKN: 3884969659
 
 Para Birimi: TRY
 
 KALEMLER
 Açıklama | Miktar | Birim Fiyat | KDV % | Tutar
-Nakliye hizmeti | 4 | 24.561,99 | 20 | 98.247,96
-Bütil Asetat 180 kg varil | 9 | 8.759,99 | 20 | 78.839,91
+Gıda ambalaj filmi (rulo) | 7 | 8.923,00 | 10 | 62.461,00
 
-Mal Hizmet Toplam Tutarı: 177.087,87 TL
-Hesaplanan KDV: 35.417,57 TL
-Ödenecek Tutar: 212.505,44 TL
+Mal Hizmet Toplam Tutarı: 62.461,00 TL
+Hesaplanan KDV: 6.246,10 TL
+Ödenecek Tutar: 68.707,10 TL

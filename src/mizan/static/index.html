@@ -3,220 +3,948 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mizan — invoice extraction that checks the math</title>
+<meta name="color-scheme" content="light dark">
+<title>Mizan — Invoice extraction that checks the math</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231a9a6c'/%3E%3Cpath d='M16 7v17M9 24h14M8 11h16M8 11l-3 7h6zM24 11l-3 7h6z' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
-  :root {
-    --bg: #f6f5f1; --panel: #ffffff; --ink: #1c1f1d; --muted: #6b716d;
-    --line: #e3e1da; --accent: #1f5f4a; --accent-soft: #e4efe9;
-    --bad: #a3352b; --bad-soft: #f7e6e3; --warn: #8a6410; --warn-soft: #f6eedb;
-    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-         background: var(--bg); color: var(--ink); }
-  header { display: flex; align-items: baseline; gap: 14px; padding: 22px 32px;
-           border-bottom: 1px solid var(--line); background: var(--panel); }
-  .logo { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
-  .logo span { color: var(--accent); }
-  .tag { color: var(--muted); }
-  header a { margin-left: auto; color: var(--muted); text-decoration: none; font-size: 14px; }
-  header a:hover { color: var(--accent); }
-  main { display: grid; grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.3fr);
-         gap: 24px; padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 16px; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
-  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
-       margin: 0 0 12px; font-weight: 600; }
-  .drop { border: 1.5px dashed var(--line); border-radius: 10px; padding: 14px; text-align: center;
-          color: var(--muted); cursor: pointer; transition: .15s; margin-bottom: 12px; }
-  .drop.over, .drop:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
-  textarea { width: 100%; min-height: 360px; resize: vertical; border: 1px solid var(--line);
-             border-radius: 10px; padding: 12px; font: 13px/1.5 var(--mono); color: var(--ink); background: #fbfaf7; }
-  textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
-  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .seg button { border: 0; background: transparent; padding: 7px 12px; cursor: pointer; font: inherit;
-                font-size: 13px; color: var(--muted); }
-  .seg button.on { background: var(--ink); color: #fff; }
-  .ghost { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 7px 12px;
-           cursor: pointer; font: inherit; font-size: 13px; color: var(--ink); }
-  .ghost:hover { border-color: var(--accent); color: var(--accent); }
-  .primary { margin-left: auto; border: 0; background: var(--accent); color: #fff; border-radius: 8px;
-             padding: 9px 18px; font: inherit; font-weight: 600; cursor: pointer; }
-  .primary:disabled { opacity: .5; cursor: wait; }
-  .empty { color: var(--muted); text-align: center; padding: 80px 20px; }
-  .status { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; margin-bottom: 18px; }
-  .status.ok { background: var(--accent-soft); color: var(--accent); }
-  .status.bad { background: var(--bad-soft); color: var(--bad); }
-  .status b { font-size: 16px; }
-  .status small { margin-left: auto; font-family: var(--mono); opacity: .8; }
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
-  .kv { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-  .kv label { display: block; font-size: 12px; color: var(--muted); }
-  .kv div { font-weight: 600; overflow-wrap: anywhere; }
-  .kv small { color: var(--muted); font-family: var(--mono); font-weight: 400; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 14px; }
-  th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 6px 8px;
-       border-bottom: 1px solid var(--line); }
-  td { padding: 8px; border-bottom: 1px solid var(--line); }
-  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
-  tfoot td { border: 0; padding: 4px 8px; }
-  tfoot tr:last-child td { font-weight: 700; font-size: 16px; padding-top: 8px; }
-  .msgs { list-style: none; padding: 0; margin: 0 0 14px; }
-  .msgs li { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 14px; }
-  .msgs .e { background: var(--bad-soft); color: var(--bad); }
-  .msgs .w { background: var(--warn-soft); color: var(--warn); }
-  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
-  pre { background: #1c1f1d; color: #e8e6df; padding: 14px; border-radius: 10px; overflow: auto;
-        font: 12px/1.5 var(--mono); max-height: 360px; }
+:root {
+  --font: "Inter", "SF Pro Display", -apple-system, "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --radius: 22px;
+  --radius-sm: 14px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+
+  --bg: #eef1f4;
+  --ink: #101418;
+  --ink-2: #4b5560;
+  --ink-3: #8a939c;
+  --line: rgba(16, 20, 24, .08);
+  --glass: rgba(255, 255, 255, .58);
+  --glass-strong: rgba(255, 255, 255, .78);
+  --glass-border: rgba(255, 255, 255, .75);
+  --glass-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 -1px 0 rgba(255,255,255,.25) inset, 0 20px 50px -20px rgba(20, 40, 60, .28), 0 2px 8px rgba(20, 40, 60, .06);
+  --accent: #14936a;
+  --accent-2: #0ea5a0;
+  --accent-soft: rgba(20, 147, 106, .12);
+  --bad: #d4453b;
+  --bad-soft: rgba(212, 69, 59, .12);
+  --warn: #c98a12;
+  --warn-soft: rgba(201, 138, 18, .14);
+  --blob-1: #7de3c0;
+  --blob-2: #a5b8ff;
+  --blob-3: #ffd1a8;
+  --blob-4: #c6f0ff;
+}
+:root[data-theme="dark"] {
+  --bg: #07090c;
+  --ink: #f2f5f7;
+  --ink-2: #b4bdc6;
+  --ink-3: #7a858f;
+  --line: rgba(255, 255, 255, .09);
+  --glass: rgba(28, 32, 38, .52);
+  --glass-strong: rgba(36, 40, 47, .78);
+  --glass-border: rgba(255, 255, 255, .12);
+  --glass-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -1px 0 rgba(255,255,255,.03) inset, 0 24px 60px -20px rgba(0, 0, 0, .7), 0 2px 8px rgba(0, 0, 0, .3);
+  --accent: #34d399;
+  --accent-2: #2dd4bf;
+  --accent-soft: rgba(52, 211, 153, .14);
+  --bad: #ff7b72;
+  --bad-soft: rgba(255, 123, 114, .14);
+  --warn: #f2c14e;
+  --warn-soft: rgba(242, 193, 78, .14);
+  --blob-1: #0f5e47;
+  --blob-2: #2b2f7a;
+  --blob-3: #5a2f1c;
+  --blob-4: #0d4a5c;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font: 15px/1.5 var(--font); color: var(--ink); background: var(--bg);
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+button { font: inherit; color: inherit; }
+a { color: var(--accent); }
+::selection { background: var(--accent-soft); }
+
+/* ---------- Ambient background ---------- */
+.ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+.ambient i {
+  position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%;
+  filter: blur(70px); opacity: .75; animation: drift 26s var(--ease) infinite alternate;
+}
+.ambient i:nth-child(1) { background: var(--blob-1); top: -14vmax; left: -10vmax; }
+.ambient i:nth-child(2) { background: var(--blob-2); top: 10vmax; right: -16vmax; animation-delay: -8s; }
+.ambient i:nth-child(3) { background: var(--blob-3); bottom: -20vmax; left: 20vmax; animation-delay: -15s; }
+.ambient i:nth-child(4) { background: var(--blob-4); top: 30vmax; left: -12vmax; width: 30vmax; height: 30vmax; animation-delay: -4s; }
+.ambient::after {
+  content: ""; position: absolute; inset: 0; opacity: .035; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes drift {
+  to { transform: translate(6vmax, 4vmax) scale(1.12); }
+}
+
+/* ---------- Glass ---------- */
+.glass {
+  position: relative; background: var(--glass);
+  backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--glass-border); border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+}
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,.35), rgba(255,255,255,0) 38%);
+  opacity: .7;
+}
+:root[data-theme="dark"] .glass::before { opacity: .12; }
+.glass > * { position: relative; }
+
+/* ---------- Nav ---------- */
+header {
+  position: sticky; top: 14px; z-index: 20; margin: 14px auto 0; max-width: 1320px;
+  width: calc(100% - 28px); display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 16px;
+  border-radius: 999px;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -.02em; white-space: nowrap; }
+.brand svg { width: 30px; height: 30px; }
+.brand span { color: var(--accent); }
+.tabs { position: relative; display: flex; gap: 2px; padding: 4px; margin: 0 auto; border-radius: 999px; background: rgba(127,127,127,.1); }
+.tabs button {
+  position: relative; z-index: 1; border: 0; background: none; cursor: pointer; padding: 7px 16px;
+  border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--ink-2); transition: color .25s; white-space: nowrap;
+  display: flex; align-items: center; gap: 7px;
+}
+.tabs button svg { width: 16px; height: 16px; }
+.tabs button[aria-selected="true"] { color: var(--ink); }
+.tabs .pill {
+  position: absolute; z-index: 0; top: 4px; bottom: 4px; border-radius: 999px; background: var(--glass-strong);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 14px rgba(0,0,0,.1); transition: left .4s var(--ease), width .4s var(--ease);
+}
+.tools { display: flex; align-items: center; gap: 6px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(127,127,127,.1); cursor: pointer;
+  display: grid; place-items: center; transition: background .2s, transform .2s; color: var(--ink-2);
+}
+.icon-btn:hover { background: rgba(127,127,127,.2); color: var(--ink); }
+.icon-btn:active { transform: scale(.94); }
+.icon-btn svg { width: 18px; height: 18px; }
+.lang { font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.status-pill {
+  display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; border: 0;
+  background: rgba(127,127,127,.1); font-size: 13px; color: var(--ink-2); cursor: pointer; white-space: nowrap;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); box-shadow: 0 0 0 3px rgba(127,127,127,.15); }
+.dot.on { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.dot.off { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-soft); }
+
+/* ---------- Layout ---------- */
+main { max-width: 1320px; margin: 0 auto; padding: 26px 14px 60px; }
+.view { display: none; animation: rise .5s var(--ease); }
+.view.active { display: block; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.hero { padding: 18px 6px 26px; }
+.hero h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spacing: -.035em; margin: 0 0 10px; font-weight: 700; }
+.hero h1 em {
+  font-style: normal; background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero p { margin: 0; color: var(--ink-2); font-size: 17px; max-width: 680px; }
+.grid-2 { display: grid; grid-template-columns: minmax(360px, 5fr) minmax(420px, 7fr); gap: 20px; align-items: start; }
+@media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } .tabs button span { display: none; } }
+@media (max-width: 640px) { .status-pill .st-label, .brand b, #helpBtn { display: none; } .tabs button { padding: 7px 11px; } .icon-btn, .status-pill { width: 34px; height: 34px; } .status-pill { padding: 0; justify-content: center; } header { gap: 6px; } header { padding-left: 10px; } }
+.card { padding: 22px; }
+.card + .card { margin-top: 20px; }
+.card h2 { margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
+.card h2 .count { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.sticky { position: sticky; top: 92px; }
+
+/* ---------- Input ---------- */
+.drop {
+  border: 1.5px dashed color-mix(in srgb, var(--ink-3) 55%, transparent); border-radius: var(--radius-sm); padding: 26px 16px;
+  text-align: center; cursor: pointer; transition: all .25s var(--ease); background: rgba(127,127,127,.04);
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.01); }
+.drop svg { width: 34px; height: 34px; color: var(--accent); margin-bottom: 6px; }
+.drop b { display: block; font-size: 15px; }
+.drop small { color: var(--ink-3); }
+.drop .file-name { color: var(--accent); font-weight: 600; }
+.or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 12px; margin: 14px 0; text-transform: uppercase; letter-spacing: .1em; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+textarea {
+  width: 100%; min-height: 220px; resize: vertical; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px;
+  font: 12.5px/1.6 var(--mono); color: var(--ink); background: rgba(127,127,127,.06); transition: border .2s, box-shadow .2s;
+}
+textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-3); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .08em; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--glass-strong); padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all .2s var(--ease);
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.chip i.w { background: var(--warn); } .chip i.b { background: var(--bad); } .chip i.n { background: var(--accent-2); }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: var(--radius-sm); background: rgba(127,127,127,.1); }
+.seg button { border: 0; background: none; border-radius: 10px; padding: 9px 6px; cursor: pointer; text-align: center; transition: all .25s var(--ease); }
+.seg button b { display: block; font-size: 14px; }
+.seg button small { display: block; font-size: 11.5px; color: var(--ink-3); }
+.seg button.on { background: var(--glass-strong); box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 14px rgba(0,0,0,.08); }
+.seg button.on b { color: var(--accent); }
+.run-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+.kbd { font: 11px var(--mono); color: var(--ink-3); }
+.kbd kbd { padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--glass-strong); }
+.btn {
+  border: 0; cursor: pointer; border-radius: 999px; padding: 12px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+  transition: transform .2s var(--ease), box-shadow .2s, opacity .2s;
+}
+.btn svg { width: 17px; height: 17px; }
+.btn-primary {
+  margin-left: auto; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 10px 24px -8px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+:root[data-theme="dark"] .btn-primary { color: #04110c; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 14px 30px -8px color-mix(in srgb, var(--accent) 80%, transparent); }
+.btn-primary:active { transform: scale(.97); }
+.btn-primary:disabled { opacity: .6; cursor: progress; }
+.btn-ghost { background: rgba(127,127,127,.1); padding: 9px 14px; font-weight: 500; font-size: 13.5px; }
+.btn-ghost:hover { background: rgba(127,127,127,.2); }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(1turn); } }
+
+/* ---------- Result ---------- */
+.empty { text-align: center; padding: 70px 20px; color: var(--ink-3); }
+.empty .orb {
+  width: 92px; height: 92px; margin: 0 auto 18px; border-radius: 28px; display: grid; place-items: center;
+  background: linear-gradient(145deg, var(--accent-soft), rgba(127,127,127,.06)); border: 1px solid var(--glass-border);
+}
+.empty .orb svg { width: 40px; height: 40px; color: var(--accent); }
+.empty b { display: block; color: var(--ink); font-size: 17px; margin-bottom: 4px; }
+.verdict { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: var(--radius-sm); margin-bottom: 18px; }
+.verdict.ok { background: var(--accent-soft); }
+.verdict.bad { background: var(--bad-soft); }
+.verdict .badge { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; flex: none; color: #fff; }
+.verdict.ok .badge { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.verdict.bad .badge { background: var(--bad); }
+.verdict .badge svg { width: 24px; height: 24px; }
+.verdict h3 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+.verdict p { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+.verdict .amount { margin-left: auto; text-align: right; }
+.verdict .amount small { display: block; color: var(--ink-3); font-size: 12px; }
+.verdict .amount b { font-size: 26px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+@media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+.kpi { padding: 12px 14px; border-radius: var(--radius-sm); background: rgba(127,127,127,.07); border: 1px solid var(--line); }
+.kpi small { color: var(--ink-3); font-size: 12px; display: block; }
+.kpi b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.parties { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+@media (max-width: 640px) { .parties { grid-template-columns: 1fr; } }
+.party { padding: 14px; border-radius: var(--radius-sm); background: rgba(127,127,127,.07); border: 1px solid var(--line); }
+.party small { color: var(--ink-3); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+.party b { display: block; margin: 2px 0 4px; }
+.party code { font: 12px var(--mono); color: var(--ink-2); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 11.5px; color: var(--ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 10px; border-bottom: 1px solid var(--line); }
+tbody tr { transition: background .15s; }
+tbody tr:hover { background: rgba(127,127,127,.06); }
+.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.section-title { font-size: 12px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; margin: 22px 0 10px; }
+.vat-row { display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 13.5px; }
+.vat-row .bar { height: 8px; border-radius: 99px; background: rgba(127,127,127,.12); overflow: hidden; }
+.vat-row .bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transform-origin: left; animation: grow .8s var(--ease) both; }
+@keyframes grow { from { transform: scaleX(0); } }
+.checks { display: grid; gap: 6px; }
+.check { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: rgba(127,127,127,.06); font-size: 14px; animation: rise .4s var(--ease) both; }
+.check .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex: none; color: #fff; }
+.check .ic svg { width: 13px; height: 13px; }
+.check.pass .ic { background: var(--accent); }
+.check.fail .ic { background: var(--bad); }
+.check.warn .ic { background: var(--warn); }
+.check.skip .ic { background: var(--ink-3); }
+.check small { display: block; color: var(--ink-2); font-size: 12.5px; }
+.check.fail small { color: var(--bad); }
+.notes { margin: 0 0 16px; padding: 0; list-style: none; display: grid; gap: 6px; }
+.notes li { padding: 10px 12px; border-radius: 12px; font-size: 13.5px; }
+.notes .e { background: var(--bad-soft); color: var(--bad); }
+.notes .w { background: var(--warn-soft); color: var(--warn); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.tag { font: 12px var(--mono); padding: 4px 10px; border-radius: 999px; background: rgba(127,127,127,.1); color: var(--ink-2); }
+pre.json { margin: 12px 0 0; max-height: 340px; overflow: auto; padding: 16px; border-radius: var(--radius-sm); background: rgba(10, 14, 18, .88); color: #d8e2ea; font: 12px/1.55 var(--mono); }
+details summary { cursor: pointer; color: var(--ink-2); font-size: 13.5px; margin-top: 16px; }
+.reveal > * { animation: rise .5s var(--ease) both; }
+.reveal > *:nth-child(2) { animation-delay: .05s; } .reveal > *:nth-child(3) { animation-delay: .1s; }
+.reveal > *:nth-child(4) { animation-delay: .15s; } .reveal > *:nth-child(5) { animation-delay: .2s; }
+.reveal > *:nth-child(n+6) { animation-delay: .25s; }
+
+/* ---------- Batch & history ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+@media (max-width: 800px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat { padding: 18px; }
+.stat small { color: var(--ink-3); font-size: 12.5px; }
+.stat b { display: block; font-size: 26px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.pill-state { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.pill-state.ok { background: var(--accent-soft); color: var(--accent); }
+.pill-state.bad { background: var(--bad-soft); color: var(--bad); }
+.pill-state.wait { background: rgba(127,127,127,.12); color: var(--ink-3); }
+.clickable { cursor: pointer; }
+.progress { height: 6px; border-radius: 99px; background: rgba(127,127,127,.12); overflow: hidden; margin: 14px 0 4px; }
+.progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s var(--ease); }
+.table-wrap { overflow-x: auto; }
+.row-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 12px; flex-wrap: wrap; }
+
+/* ---------- About ---------- */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+@media (max-width: 900px) { .steps { grid-template-columns: 1fr; } }
+.step { padding: 22px; }
+.step .num { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); margin-bottom: 12px; }
+.step h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -.01em; }
+.step p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+#featureGrid { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { #featureGrid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { #featureGrid, #welcomeFeatures { grid-template-columns: 1fr; } }
+.feature { padding: 16px; border-radius: var(--radius-sm); background: rgba(127,127,127,.06); border: 1px solid var(--line); }
+.feature svg { width: 22px; height: 22px; color: var(--accent); }
+.feature b { display: block; margin: 8px 0 4px; }
+.feature p { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+.code { position: relative; }
+.code pre { margin: 0; padding: 16px; border-radius: var(--radius-sm); background: rgba(10, 14, 18, .88); color: #d8e2ea; font: 12.5px/1.6 var(--mono); overflow: auto; }
+
+/* ---------- Modal & toast ---------- */
+.scrim { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; padding: 20px; background: rgba(10, 14, 18, .28); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.scrim.open { display: grid; animation: fade .3s var(--ease); }
+@keyframes fade { from { opacity: 0; } }
+.modal { width: min(680px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 30px; animation: pop .45s var(--ease); }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+.modal .logo-big { width: 64px; height: 64px; margin-bottom: 14px; }
+.modal h2 { margin: 0 0 6px; font-size: 28px; letter-spacing: -.03em; }
+.modal > p { margin: 0 0 22px; color: var(--ink-2); font-size: 15.5px; }
+.modal .features { margin-bottom: 22px; }
+.modal-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.modal-foot label { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.close-x { position: absolute; top: 16px; right: 16px; }
+.popover { position: absolute; right: 0; top: 46px; width: 320px; padding: 16px; display: none; font-size: 13.5px; }
+.popover.open { display: block; animation: pop .3s var(--ease); }
+.popover b { display: block; margin-bottom: 4px; }
+.popover p { margin: 0 0 8px; color: var(--ink-2); }
+.popover code { font: 12px var(--mono); }
+.toast {
+  position: fixed; left: 50%; bottom: 26px; z-index: 60; transform: translate(-50%, 30px); opacity: 0; pointer-events: none;
+  padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; transition: all .35s var(--ease);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+footer { text-align: center; color: var(--ink-3); font-size: 13px; padding: 10px 0 30px; }
+footer a { color: var(--ink-2); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">Mizan<span>.</span></div>
-  <div class="tag">Invoice extraction that checks the math</div>
-  <a href="/docs">API docs →</a>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M16 7v17M9 24h14M8 11h16M8 11l-3 7h6zM24 11l-3 7h6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14936a"/><stop offset="1" stop-color="#0ea5a0"/></linearGradient>
+    <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M8 9h8M8 12h8M8 15h5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 12h10"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5 14h6l-1 7 8-11h-6l1-7Z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 3 .8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.7s.8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7a3.9 3.9 0 0 1 1 2.7c0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/></symbol>
+  </defs>
+</svg>
+
+<header class="glass">
+  <div class="brand"><svg><use href="#i-logo"/></svg><b>Mizan<span>.</span></b></div>
+  <nav class="tabs" role="tablist">
+    <span class="pill" aria-hidden="true"></span>
+    <button role="tab" data-view="extract" aria-selected="true"><svg><use href="#i-scan"/></svg><span data-i18n="tab.extract"></span></button>
+    <button role="tab" data-view="batch" aria-selected="false"><svg><use href="#i-layers"/></svg><span data-i18n="tab.batch"></span></button>
+    <button role="tab" data-view="history" aria-selected="false"><svg><use href="#i-clock"/></svg><span data-i18n="tab.history"></span></button>
+    <button role="tab" data-view="about" aria-selected="false"><svg><use href="#i-info"/></svg><span data-i18n="tab.about"></span></button>
+  </nav>
+  <div class="tools" style="position:relative">
+    <button class="status-pill" id="statusBtn" aria-haspopup="true"><i class="dot" id="statusDot"></i><span class="st-label" id="statusLabel">…</span></button>
+    <div class="popover glass" id="statusPop"></div>
+    <button class="icon-btn lang" id="langBtn" aria-label="Language">TR</button>
+    <button class="icon-btn" id="themeBtn" aria-label="Theme"><svg><use href="#i-moon"/></svg></button>
+    <button class="icon-btn" id="helpBtn" aria-label="Help"><svg><use href="#i-info"/></svg></button>
+  </div>
 </header>
 
 <main>
-  <section class="panel">
-    <h2>Invoice</h2>
-    <div class="drop" id="drop">Drop a <b>.pdf</b> or <b>.txt</b> invoice here, or click to choose
-      <input type="file" id="file" accept=".pdf,.txt" hidden></div>
-    <textarea id="text" placeholder="…or paste invoice text"></textarea>
-    <div class="row">
-      <div class="seg" id="strategy">
-        <button data-v="auto" class="on" title="Rules first, LLM fallback">Auto</button>
-        <button data-v="rules" title="Regex only, free">Rules</button>
-        <button data-v="llm" title="LLM only">LLM</button>
+  <!-- ============ EXTRACT ============ -->
+  <section class="view active" id="view-extract">
+    <div class="hero">
+      <h1 data-i18n-html="hero.title"></h1>
+      <p data-i18n="hero.sub"></p>
+    </div>
+    <div class="grid-2">
+      <div class="glass card sticky">
+        <h2 data-i18n="in.title"></h2>
+        <div class="drop" id="drop" tabindex="0" role="button">
+          <svg><use href="#i-upload"/></svg>
+          <b id="dropTitle" data-i18n="in.drop"></b>
+          <small data-i18n="in.dropHint"></small>
+          <input type="file" id="file" accept=".pdf,.txt" hidden>
+        </div>
+        <div class="or" data-i18n="in.or"></div>
+        <textarea id="text" spellcheck="false" data-i18n-placeholder="in.paste"></textarea>
+        <span class="label" data-i18n="in.samples"></span>
+        <div class="chips" id="samples"></div>
+        <span class="label" data-i18n="in.strategy"></span>
+        <div class="seg" id="strategy">
+          <button data-v="auto" class="on"><b>Auto</b><small data-i18n="st.auto"></small></button>
+          <button data-v="rules"><b>Rules</b><small data-i18n="st.rules"></small></button>
+          <button data-v="llm"><b>LLM</b><small data-i18n="st.llm"></small></button>
+        </div>
+        <div class="run-row">
+          <span class="kbd"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
+          <button class="btn btn-primary" id="run"><svg><use href="#i-sparkle"/></svg><span data-i18n="in.run"></span></button>
+        </div>
       </div>
-      <button class="ghost" data-sample="std">Sample: standard</button>
-      <button class="ghost" data-sample="free">Sample: free-form</button>
-      <button class="primary" id="run">Extract</button>
+      <div class="glass card" id="result">
+        <div class="empty">
+          <div class="orb"><svg><use href="#i-scan"/></svg></div>
+          <b data-i18n="out.emptyTitle"></b>
+          <span data-i18n="out.emptySub"></span>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="panel" id="out">
-    <h2>Result</h2>
-    <div class="empty">Load a sample or paste an invoice, then press <b>Extract</b>.</div>
+  <!-- ============ BATCH ============ -->
+  <section class="view" id="view-batch">
+    <div class="hero">
+      <h1 data-i18n-html="batch.title"></h1>
+      <p data-i18n="batch.sub"></p>
+    </div>
+    <div class="glass card">
+      <div class="drop" id="bdrop" tabindex="0" role="button">
+        <svg><use href="#i-layers"/></svg>
+        <b data-i18n="batch.drop"></b>
+        <small data-i18n="batch.dropHint"></small>
+        <input type="file" id="bfiles" accept=".pdf,.txt" multiple hidden>
+      </div>
+      <div class="progress" id="bprog" hidden><i></i></div>
+    </div>
+    <div id="bout"></div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="view" id="view-history">
+    <div class="hero">
+      <h1 data-i18n-html="hist.title"></h1>
+      <p data-i18n="hist.sub"></p>
+    </div>
+    <div class="glass card" id="hout"></div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="view" id="view-about">
+    <div class="hero">
+      <h1 data-i18n-html="about.title"></h1>
+      <p data-i18n="about.sub"></p>
+    </div>
+    <div class="steps">
+      <div class="glass step"><div class="num">1</div><h3 data-i18n="about.s1"></h3><p data-i18n="about.s1d"></p></div>
+      <div class="glass step"><div class="num">2</div><h3 data-i18n="about.s2"></h3><p data-i18n="about.s2d"></p></div>
+      <div class="glass step"><div class="num">3</div><h3 data-i18n="about.s3"></h3><p data-i18n="about.s3d"></p></div>
+    </div>
+    <div class="glass card">
+      <h2 data-i18n="about.features"></h2>
+      <div class="features" id="featureGrid"></div>
+    </div>
+    <div class="glass card">
+      <h2 data-i18n="about.api"></h2>
+      <p style="margin:0 0 12px;color:var(--ink-2)" data-i18n-html="about.apiSub"></p>
+      <div class="code"><pre id="apiSnippet"></pre></div>
+    </div>
   </section>
 </main>
 
+<footer>
+  Mizan <span id="ver"></span> · <a href="/docs">API docs</a> · <a href="https://github.com/numanak-b221210105/mizan" target="_blank" rel="noopener">GitHub</a> · MIT
+</footer>
+
+<!-- ============ WELCOME ============ -->
+<div class="scrim" id="welcome" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="glass modal">
+    <button class="icon-btn close-x" id="wClose" aria-label="Close"><svg><use href="#i-x"/></svg></button>
+    <svg class="logo-big"><use href="#i-logo"/></svg>
+    <h2 id="wTitle" data-i18n="w.title"></h2>
+    <p data-i18n="w.sub"></p>
+    <div class="features" id="welcomeFeatures"></div>
+    <div class="modal-foot">
+      <label><input type="checkbox" id="wHide"> <span data-i18n="w.hide"></span></label>
+      <button class="btn btn-ghost" id="wTour" style="margin-left:auto" data-i18n="w.learn"></button>
+      <button class="btn btn-primary" id="wTry" style="margin-left:0"><svg><use href="#i-sparkle"/></svg><span data-i18n="w.try"></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast glass" id="toast"></div>
+
 <script>
-const SAMPLES = {
-  std: `E-FATURA
-Fatura No: FTR2026000000001
-Fatura Tarihi: 22.02.2026
+"use strict";
+const SAMPLES = {"std": "E-FATURA\nFatura No: FTR2026000000001\nFatura Tarihi: 22.02.2026\n\nSATICI\nÜnvan: Karadeniz Tekstil Ltd. Şti.\nVergi Dairesi: Trabzon\nVKN: 8196001331\n\nALICI\nÜnvan: Deniz Kimya San. ve Tic. A.Ş.\nVergi Dairesi: Kozyatağı\nVKN: 8908386371\n\nPara Birimi: TRY\n\nKALEMLER\nAçıklama | Miktar | Birim Fiyat | KDV % | Tutar\nNakliye hizmeti | 4 | 7.464,00 | 20 | 29.856,00\n\nMal Hizmet Toplam Tutarı: 29.856,00 TL\nHesaplanan KDV: 5.971,20 TL\nÖdenecek Tutar: 35.827,20 TL\n", "alt": "FATURA\nFatura Numarası: FTR2026000000006\nDüzenleme Tarihi: 8 Eylül 2026\n\nSATICI BİLGİLERİ\nUnvan: Karadeniz Tekstil Ltd. Şti.\nVergi Dairesi: Trabzon\nVKN: 0154303912\n\nALICI BİLGİLERİ\nUnvan: Anadolu Lojistik A.Ş.\nVergi Dairesi: Ankara Kurumlar\nVKN: 1718227827\n\nIBC Tank 1000 L | 3 | 17.824,99 | %20 | 53.474,97\nPalet (ahşap) | 1 | 19.776,50 | %10 | 19.776,50\n\nAra Toplam: 73.251,47\nToplam KDV: 12.672,64\nGenel Toplam: 85.924,11\n", "free": "Karadeniz Tekstil Ltd. Şti.\nTrabzon V.D. - 1165667017\n\nSayın Ege Ambalaj San. Ltd. Şti. (Bornova V.D. 0651333875),\n08/04/2026 tarihli ve FTR2026000000008 numaralı faturanız aşağıdadır.\n\n- 10 adet IBC Tank 1000 L, birimi 19.031,50 TL (KDV %20), toplam 190.315,00 TL\n- 4 adet Gıda ambalaj filmi (rulo), birimi 15.648,50 TL (KDV %10), toplam 62.594,00 TL\n\nKDV hariç 252.909,00 TL, KDV 44.322,40 TL olmak üzere\ntoplam 297.231,40 TL ödemenizi rica ederiz.\n", "bad": "E-FATURA\nFatura No: FTR2026000000002\nFatura Tarihi: 23.05.2026\n\nSATICI\nÜnvan: Anadolu Lojistik A.Ş.\nVergi Dairesi: Ankara Kurumlar\nVKN: 2351161555\n\nALICI\nÜnvan: Marmara Plastik A.Ş.\nVergi Dairesi: Gebze\nVKN: 9407816188\n\nPara Birimi: TRY\n\nKALEMLER\nAçıklama | Miktar | Birim Fiyat | KDV % | Tutar\nIBC Tank 1000 L | 12 | 13.998,50 | 20 | 167.982,00\n\nMal Hizmet Toplam Tutarı: 167.982,00 TL\nHesaplanan KDV: 33.596,40 TL\nÖdenecek Tutar: 202.578,40 TL\n"};
 
-SATICI
-Ünvan: Karadeniz Tekstil Ltd. Şti.
-Vergi Dairesi: Trabzon
-VKN: 8196001338
-
-ALICI
-Ünvan: Deniz Kimya San. ve Tic. A.Ş.
-Vergi Dairesi: Kozyatağı
-VKN: 9083863794
-
-Para Birimi: TRY
-
-KALEMLER
-Açıklama | Miktar | Birim Fiyat | KDV % | Tutar
-Nakliye hizmeti | 4 | 7.464,00 | 20 | 29.856,00
-Palet (ahşap) | 10 | 350,00 | 10 | 3.500,00
-
-Mal Hizmet Toplam Tutarı: 33.356,00 TL
-Hesaplanan KDV: 6.321,20 TL
-Ödenecek Tutar: 39.677,20 TL`,
-  free: `Yıldız Boya Ltd. Şti.
-Adapazarı V.D. - 0106513338
-
-Sayın Deniz Kimya San. ve Tic. A.Ş. (Kozyatağı V.D. 7262473178),
-28/08/2026 tarihli ve FTR2026000000008 numaralı faturanız aşağıdadır.
-
-- 6 adet Teknik danışmanlık (saat), birimi 14.029,50 TL (KDV %20), toplam 84.177,00 TL
-
-KDV hariç 84.177,00 TL, KDV 16.835,40 TL olmak üzere
-toplam 101.012,40 TL ödemenizi rica ederiz.`,
+/* ---------------- i18n ---------------- */
+const I18N = {
+  en: {
+    "tab.extract": "Extract", "tab.batch": "Batch", "tab.history": "History", "tab.about": "How it works",
+    "hero.title": "Invoices in. <em>Verified</em> data out.",
+    "hero.sub": "Drop a Turkish invoice and get clean, structured data — with every number cross-checked before you trust it.",
+    "in.title": "Document", "in.drop": "Drop a PDF or TXT invoice", "in.dropHint": "or click to browse · max 5 MB",
+    "in.or": "or paste text", "in.paste": "Paste invoice text here…", "in.samples": "Try a sample", "in.strategy": "Extraction strategy",
+    "in.run": "Extract", "in.running": "Extracting…",
+    "st.auto": "Rules → LLM", "st.rules": "Free & instant", "st.llm": "Any layout",
+    "s.std": "Standard e-invoice", "s.alt": "Different layout", "s.free": "Free-form letter", "s.bad": "Tampered total",
+    "out.emptyTitle": "Your results will appear here", "out.emptySub": "Pick a sample on the left to see Mizan in action.",
+    "v.ok": "Balanced", "v.okSub": "All arithmetic checks passed", "v.bad": "Numbers don't add up", "v.badSub": "{n} check(s) failed — do not post this invoice as-is",
+    "v.fail": "Could not extract", "v.failSub": "The document could not be parsed with this strategy", "v.payable": "Payable",
+    "k.subtotal": "Subtotal", "k.vat": "VAT", "k.items": "Line items", "k.time": "Processing",
+    "p.seller": "Seller", "p.buyer": "Buyer", "sec.items": "Line items", "sec.vat": "VAT breakdown", "sec.checks": "Validation checks",
+    "t.item": "Item", "t.qty": "Qty", "t.price": "Unit price", "t.vat": "VAT", "t.total": "Total",
+    "c.totals_balance": "Subtotal + VAT = payable", "c.line_math": "Qty × unit price = line total", "c.items_sum": "Line items add up to subtotal",
+    "c.vat_calc": "VAT matches per-rate calculation", "c.vat_rates": "Standard Turkish VAT rates", "c.tax_id_checksum": "Tax ID (VKN/TCKN) check digits",
+    "c.distinct_parties": "Seller and buyer are different", "c.skipped": "Not applicable",
+    "a.copy": "Copy JSON", "a.json": "Download JSON", "a.csv": "Download CSV", "a.raw": "Raw JSON response",
+    "toast.copied": "JSON copied to clipboard", "toast.saved": "Saved to history", "toast.empty": "Add a document or pick a sample first",
+    "toast.cleared": "History cleared", "toast.error": "Request failed",
+    "batch.title": "Process a <em>stack</em> at once.", "batch.sub": "Drop up to 20 invoices. Mizan extracts, verifies and totals them, then exports a clean CSV for your accounting tool.",
+    "batch.drop": "Drop multiple invoices", "batch.dropHint": "PDF or TXT · processed with the Auto strategy",
+    "b.docs": "Documents", "b.ok": "Balanced", "b.fail": "Need review", "b.total": "Total payable", "b.file": "File", "b.no": "Invoice no",
+    "b.seller": "Seller", "b.date": "Date", "b.status": "Status", "b.export": "Export CSV", "b.wait": "Queued",
+    "hist.title": "Your recent <em>extractions</em>.", "hist.sub": "Stored only in this browser. Click any row to reopen the full result.",
+    "h.empty": "No history yet — extracted invoices will show up here.", "h.clear": "Clear history", "h.when": "When",
+    "about.title": "Rules first. <em>LLM</em> when needed. Math always.",
+    "about.sub": "Mizan is the Turkish accounting term for a trial balance — the step that makes sure the books balance. That is exactly what this tool does for invoice data.",
+    "about.s1": "Read", "about.s1d": "PDF or text comes in. Text is extracted in memory; nothing is stored on the server.",
+    "about.s2": "Extract", "about.s2d": "A free, instant rule engine handles known layouts. Unknown layouts fall back to an LLM forced to answer in a strict JSON schema.",
+    "about.s3": "Verify", "about.s3d": "Every result is cross-checked: line math, totals, per-rate VAT and tax-ID check digits. Hallucinated numbers get caught.",
+    "about.features": "What you get", "about.api": "Use it from code",
+    "about.apiSub": "Everything in this UI is a REST call. Interactive docs live at <a href='/docs'>/docs</a>.",
+    "f.verify": "Verified, not guessed", "f.verifyD": "7 business-rule checks on every invoice, shown as a checklist.",
+    "f.cost": "Cost-aware", "f.costD": "The LLM is only called when rules fail — most invoices cost nothing.",
+    "f.any": "Any LLM provider", "f.anyD": "OpenAI, Gemini, Groq or a local Ollama model. Your choice.",
+    "f.batch": "Batch & export", "f.batchD": "Process a stack of invoices and export CSV or JSON.",
+    "f.private": "Private by default", "f.privateD": "Runs on your machine. History stays in your browser.",
+    "f.api": "API first", "f.apiD": "Clean REST API with OpenAPI docs, Docker image and CI.",
+    "w.title": "Welcome to Mizan", "w.sub": "Turn Turkish invoices into structured, trustworthy data — in seconds. Here is what it does:",
+    "w.hide": "Don't show this again", "w.learn": "How it works", "w.try": "Try a sample",
+    "llm.on": "LLM ready", "llm.off": "Rules only", "llm.checking": "Checking…",
+    "pop.on": "Connected to {p} at {h}. Model: {m}. The Auto and LLM strategies are available.",
+    "pop.off": "No LLM at {h}. The Rules strategy works fully. To read any layout, install Ollama and run:",
+    "pop.edit": "Or set another provider in the .env file.",
+    "time.now": "just now", "time.min": "{n} min ago", "time.hour": "{n} h ago", "time.day": "{n} d ago",
+  },
+  tr: {
+    "tab.extract": "Çıkar", "tab.batch": "Toplu", "tab.history": "Geçmiş", "tab.about": "Nasıl çalışır",
+    "hero.title": "Fatura girer. <em>Doğrulanmış</em> veri çıkar.",
+    "hero.sub": "Bir Türkçe fatura bırakın; temiz, yapılandırılmış veriyi alın. Her rakam size gelmeden önce çapraz kontrol edilir.",
+    "in.title": "Belge", "in.drop": "PDF veya TXT fatura bırakın", "in.dropHint": "ya da tıklayıp seçin · en fazla 5 MB",
+    "in.or": "veya metin yapıştırın", "in.paste": "Fatura metnini buraya yapıştırın…", "in.samples": "Örnek deneyin", "in.strategy": "Çıkarım stratejisi",
+    "in.run": "Çıkar", "in.running": "Çıkarılıyor…",
+    "st.auto": "Kural → LLM", "st.rules": "Ücretsiz, anında", "st.llm": "Her biçim",
+    "s.std": "Standart e-fatura", "s.alt": "Farklı şablon", "s.free": "Serbest metin", "s.bad": "Hatalı toplam",
+    "out.emptyTitle": "Sonuçlar burada görünecek", "out.emptySub": "Mizan'ı iş başında görmek için soldan bir örnek seçin.",
+    "v.ok": "Dengeli", "v.okSub": "Tüm aritmetik kontroller geçti", "v.bad": "Rakamlar tutmuyor", "v.badSub": "{n} kontrol başarısız — bu faturayı olduğu gibi işlemeyin",
+    "v.fail": "Çıkarılamadı", "v.failSub": "Belge bu stratejiyle ayrıştırılamadı", "v.payable": "Ödenecek",
+    "k.subtotal": "Ara toplam", "k.vat": "KDV", "k.items": "Kalem", "k.time": "Süre",
+    "p.seller": "Satıcı", "p.buyer": "Alıcı", "sec.items": "Kalemler", "sec.vat": "KDV dökümü", "sec.checks": "Doğrulama kontrolleri",
+    "t.item": "Açıklama", "t.qty": "Miktar", "t.price": "Birim fiyat", "t.vat": "KDV", "t.total": "Tutar",
+    "c.totals_balance": "Ara toplam + KDV = ödenecek", "c.line_math": "Miktar × birim fiyat = satır tutarı", "c.items_sum": "Kalemler toplamı = ara toplam",
+    "c.vat_calc": "KDV, oran bazında hesapla tutarlı", "c.vat_rates": "Standart KDV oranları", "c.tax_id_checksum": "VKN/TCKN kontrol basamağı",
+    "c.distinct_parties": "Satıcı ve alıcı farklı", "c.skipped": "Uygulanamadı",
+    "a.copy": "JSON kopyala", "a.json": "JSON indir", "a.csv": "CSV indir", "a.raw": "Ham JSON yanıtı",
+    "toast.copied": "JSON panoya kopyalandı", "toast.saved": "Geçmişe kaydedildi", "toast.empty": "Önce bir belge ekleyin veya örnek seçin",
+    "toast.cleared": "Geçmiş temizlendi", "toast.error": "İstek başarısız",
+    "batch.title": "Bir <em>yığını</em> tek seferde işleyin.", "batch.sub": "20 faturaya kadar bırakın. Mizan hepsini çıkarır, doğrular, toplar ve muhasebe programınız için temiz bir CSV verir.",
+    "batch.drop": "Birden çok fatura bırakın", "batch.dropHint": "PDF veya TXT · Auto stratejisiyle işlenir",
+    "b.docs": "Belge", "b.ok": "Dengeli", "b.fail": "İncelenmeli", "b.total": "Toplam ödenecek", "b.file": "Dosya", "b.no": "Fatura no",
+    "b.seller": "Satıcı", "b.date": "Tarih", "b.status": "Durum", "b.export": "CSV dışa aktar", "b.wait": "Sırada",
+    "hist.title": "Son <em>çıkarımlarınız</em>.", "hist.sub": "Yalnızca bu tarayıcıda saklanır. Tam sonucu açmak için bir satıra tıklayın.",
+    "h.empty": "Henüz geçmiş yok — çıkardığınız faturalar burada görünecek.", "h.clear": "Geçmişi temizle", "h.when": "Zaman",
+    "about.title": "Önce kurallar. Gerekirse <em>LLM</em>. Matematik her zaman.",
+    "about.sub": "Mizan, muhasebede defterlerin denk olup olmadığını gösteren tablodur. Bu araç da fatura verisi için tam olarak bunu yapar.",
+    "about.s1": "Oku", "about.s1d": "PDF veya metin gelir. Metin bellekte çıkarılır; sunucuda hiçbir şey saklanmaz.",
+    "about.s2": "Çıkar", "about.s2d": "Bilinen şablonları ücretsiz ve anında çalışan kural motoru işler. Bilinmeyen biçimler, katı bir JSON şemasıyla yanıt vermeye zorlanan LLM'e gider.",
+    "about.s3": "Doğrula", "about.s3d": "Her sonuç çapraz kontrol edilir: satır hesapları, toplamlar, oran bazında KDV ve VKN kontrol basamağı. Uydurulan rakamlar yakalanır.",
+    "about.features": "Neler sunar", "about.api": "Koddan kullanın",
+    "about.apiSub": "Bu arayüzdeki her şey bir REST çağrısıdır. Etkileşimli dokümantasyon: <a href='/docs'>/docs</a>.",
+    "f.verify": "Tahmin değil, doğrulama", "f.verifyD": "Her faturada 7 iş kuralı kontrolü, kontrol listesi olarak.",
+    "f.cost": "Maliyet bilinçli", "f.costD": "LLM yalnızca kurallar başarısız olunca çağrılır; çoğu fatura bedava işlenir.",
+    "f.any": "Her LLM sağlayıcısı", "f.anyD": "OpenAI, Gemini, Groq veya yerel Ollama. Seçim sizin.",
+    "f.batch": "Toplu işlem ve dışa aktarma", "f.batchD": "Fatura yığınını işleyin, CSV veya JSON alın.",
+    "f.private": "Varsayılan olarak gizli", "f.privateD": "Kendi bilgisayarınızda çalışır. Geçmiş tarayıcınızda kalır.",
+    "f.api": "API öncelikli", "f.apiD": "OpenAPI dokümanlı REST API, Docker imajı ve CI.",
+    "w.title": "Mizan'a hoş geldiniz", "w.sub": "Türkçe faturaları saniyeler içinde yapılandırılmış ve güvenilir veriye dönüştürün. İşte yaptıkları:",
+    "w.hide": "Bunu bir daha gösterme", "w.learn": "Nasıl çalışır", "w.try": "Örnek dene",
+    "llm.on": "LLM hazır", "llm.off": "Yalnızca kurallar", "llm.checking": "Kontrol ediliyor…",
+    "pop.on": "{h} adresindeki {p} sunucusuna bağlı. Model: {m}. Auto ve LLM stratejileri kullanılabilir.",
+    "pop.off": "{h} adresinde LLM yok. Kural stratejisi tam çalışır. Her biçimi okumak için Ollama'yı kurup şunu çalıştırın:",
+    "pop.edit": "Ya da .env dosyasında başka bir sağlayıcı tanımlayın.",
+    "time.now": "az önce", "time.min": "{n} dk önce", "time.hour": "{n} sa önce", "time.day": "{n} gün önce",
+  },
 };
 
-const $ = (s) => document.querySelector(s);
-const textEl = $("#text"), out = $("#out"), runBtn = $("#run");
-let strategy = "auto", pendingFile = null;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("mizan." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("mizan." + k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+};
 
-$("#strategy").addEventListener("click", (e) => {
-  const b = e.target.closest("button"); if (!b) return;
-  document.querySelectorAll("#strategy button").forEach((x) => x.classList.toggle("on", x === b));
-  strategy = b.dataset.v;
-});
-document.querySelectorAll("[data-sample]").forEach((b) =>
-  b.addEventListener("click", () => { textEl.value = SAMPLES[b.dataset.sample]; pendingFile = null; setDrop(); }));
+let lang = store.get("lang", (navigator.language || "en").toLowerCase().startsWith("tr") ? "tr" : "en");
+const t = (k, vars = {}) => (I18N[lang][k] ?? I18N.en[k] ?? k).replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? "");
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const icon = (id) => `<svg><use href="#i-${id}"/></svg>`;
+const money = (v, cur = "TRY") => {
+  try { return Number(v).toLocaleString(lang === "tr" ? "tr-TR" : "en-US", { style: "currency", currency: cur, currencyDisplay: "narrowSymbol" }); }
+  catch { return `${Number(v).toFixed(2)} ${cur}`; }
+};
 
-const drop = $("#drop"), fileInput = $("#file");
-const setDrop = (name) => drop.innerHTML = name
-  ? `Selected <b>${esc(name)}</b> — press Extract` + fileInput.outerHTML
-  : drop.dataset.html;
-drop.dataset.html = drop.innerHTML;
-drop.addEventListener("click", () => drop.querySelector("input").click());
-drop.addEventListener("change", (e) => { if (e.target.files[0]) pick(e.target.files[0]); });
-["dragover", "dragenter"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
-["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, () => drop.classList.remove("over")));
-drop.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) pick(e.dataTransfer.files[0]); });
-function pick(f) { pendingFile = f; textEl.value = ""; setDrop(f.name); }
-
-function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-const money = (v, cur = "TRY") => Number(v).toLocaleString("tr-TR", { style: "currency", currency: cur });
-
-runBtn.addEventListener("click", async () => {
-  runBtn.disabled = true; runBtn.textContent = "Extracting…";
-  try {
-    let res;
-    if (pendingFile) {
-      const fd = new FormData(); fd.append("file", pendingFile);
-      res = await fetch(`/extract/file?strategy=${strategy}`, { method: "POST", body: fd });
-    } else {
-      res = await fetch(`/extract/text?strategy=${strategy}`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textEl.value }),
-      });
-    }
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || res.statusText);
-    render(data);
-  } catch (err) {
-    out.innerHTML = `<h2>Result</h2><div class="status bad"><b>Request failed</b></div><ul class="msgs"><li class="e">${esc(err.message)}</li></ul>`;
-  } finally { runBtn.disabled = false; runBtn.textContent = "Extract"; }
-});
-
-function render(r) {
-  const inv = r.invoice, ok = inv && r.errors.length === 0;
-  let html = `<h2>Result</h2>
-    <div class="status ${ok ? "ok" : "bad"}">
-      <b>${ok ? "✓ Balanced" : inv ? "✗ Numbers don't add up" : "✗ Could not extract"}</b>
-      <span>${ok ? "All cross-checks passed" : `${r.errors.length} error(s)`}</span>
-      <small>extractor: ${esc(r.extractor)}</small>
-    </div>`;
-  const msgs = [...r.errors.map((m) => `<li class="e">${esc(m)}</li>`), ...r.warnings.map((m) => `<li class="w">${esc(m)}</li>`)];
-  if (msgs.length) html += `<ul class="msgs">${msgs.join("")}</ul>`;
-  if (inv) {
-    const cur = inv.currency;
-    html += `<div class="grid">
-      <div class="kv"><label>Invoice no</label><div>${esc(inv.invoice_no)}</div></div>
-      <div class="kv"><label>Issue date</label><div>${esc(inv.issue_date)}</div></div>
-      <div class="kv"><label>Seller</label><div>${esc(inv.seller.name)}</div><small>${esc(inv.seller.tax_office ?? "")} · ${esc(inv.seller.tax_id ?? "—")}</small></div>
-      <div class="kv"><label>Buyer</label><div>${esc(inv.buyer.name)}</div><small>${esc(inv.buyer.tax_office ?? "")} · ${esc(inv.buyer.tax_id ?? "—")}</small></div>
-    </div>
-    <table><thead><tr><th>Item</th><th class="n">Qty</th><th class="n">Unit price</th><th class="n">VAT</th><th class="n">Total</th></tr></thead><tbody>
-    ${inv.items.map((i) => `<tr><td>${esc(i.description)}</td><td class="n">${esc(i.quantity)}</td><td class="n">${money(i.unit_price, cur)}</td><td class="n">%${i.vat_rate}</td><td class="n">${money(i.line_total, cur)}</td></tr>`).join("")}
-    </tbody><tfoot>
-      <tr><td colspan="4" class="n">Subtotal</td><td class="n">${money(inv.subtotal, cur)}</td></tr>
-      <tr><td colspan="4" class="n">VAT</td><td class="n">${money(inv.vat_total, cur)}</td></tr>
-      <tr><td colspan="4" class="n">Payable</td><td class="n">${money(inv.grand_total, cur)}</td></tr>
-    </tfoot></table>`;
-  }
-  html += `<details><summary>Raw JSON</summary><pre>${esc(JSON.stringify(r, null, 2))}</pre></details>`;
-  out.innerHTML = html;
+function applyI18n() {
+  document.documentElement.lang = lang;
+  $$("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  $$("[data-i18n-html]").forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml)));
+  $$("[data-i18n-placeholder]").forEach((el) => (el.placeholder = t(el.dataset.i18nPlaceholder)));
+  $("#langBtn").textContent = lang === "tr" ? "EN" : "TR";
+  renderSamples(); renderFeatures(); renderApi(); renderStatus();
+  if (lastResult) renderResult(lastResult.result, lastResult.name, false);
+  if (batchState.length) renderBatch();
+  renderHistory(); movePill();
 }
+
+/* ---------------- Theme ---------------- */
+function setTheme(th) {
+  document.documentElement.dataset.theme = th;
+  $("#themeBtn").innerHTML = icon(th === "dark" ? "sun" : "moon");
+  store.set("theme", th);
+}
+setTheme(store.get("theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+$("#themeBtn").onclick = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+$("#langBtn").onclick = () => { lang = lang === "tr" ? "en" : "tr"; store.set("lang", lang); applyI18n(); };
+
+/* ---------------- Tabs ---------------- */
+function movePill() {
+  const on = $(".tabs button[aria-selected=true]"), pill = $(".tabs .pill");
+  if (!on) return;
+  pill.style.left = on.offsetLeft + "px"; pill.style.width = on.offsetWidth + "px";
+}
+function show(view) {
+  $$(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.view === view)));
+  $$(".view").forEach((v) => v.classList.toggle("active", v.id === "view-" + view));
+  movePill(); scrollTo({ top: 0, behavior: "smooth" });
+  if (view === "history") renderHistory();
+}
+$$(".tabs button").forEach((b) => (b.onclick = () => show(b.dataset.view)));
+addEventListener("resize", movePill);
+
+/* ---------------- Toast ---------------- */
+let toastTimer;
+function toast(msg) {
+  const el = $("#toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+/* ---------------- Status ---------------- */
+let status = null;
+async function loadStatus() {
+  try { status = await (await fetch("/status")).json(); } catch { status = null; }
+  renderStatus();
+}
+function renderStatus() {
+  const dot = $("#statusDot"), label = $("#statusLabel"), pop = $("#statusPop");
+  if (!status) { dot.className = "dot"; label.textContent = t("llm.checking"); return; }
+  $("#ver").textContent = "v" + status.version;
+  const s = status.llm;
+  dot.className = "dot " + (s.reachable ? "on" : "off");
+  label.textContent = s.reachable ? `${t("llm.on")} · ${s.model}` : t("llm.off");
+  pop.innerHTML = s.reachable
+    ? `<b>${esc(s.provider)} · ${esc(s.model)}</b><p>${esc(t("pop.on", { p: s.provider, h: s.host, m: s.model }))}</p>`
+    : `<b>${t("llm.off")}</b><p>${esc(t("pop.off", { h: s.host }))}</p><p><code>ollama pull ${esc(s.model)}</code></p><p>${t("pop.edit")}</p>`;
+}
+$("#statusBtn").onclick = (e) => { e.stopPropagation(); $("#statusPop").classList.toggle("open"); };
+document.addEventListener("click", (e) => { if (!e.target.closest("#statusPop")) $("#statusPop").classList.remove("open"); });
+
+/* ---------------- Extract ---------------- */
+let strategy = "auto", pendingFile = null, lastResult = null;
+const textEl = $("#text"), runBtn = $("#run");
+
+function renderSamples() {
+  const kinds = [["std", ""], ["alt", "n"], ["free", "w"], ["bad", "b"]];
+  $("#samples").innerHTML = kinds.map(([k, c]) => `<button class="chip" data-s="${k}"><i class="${c}"></i>${t("s." + k)}</button>`).join("");
+  $$("#samples .chip").forEach((b) => (b.onclick = () => loadSample(b.dataset.s)));
+}
+function loadSample(k) {
+  textEl.value = SAMPLES[k]; setFile(null);
+  // Serbest metin yalnızca LLM ile okunabilir; LLM yoksa kural sonucunu göstermek de öğreticidir.
+  run();
+}
+$("#strategy").onclick = (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  $$("#strategy button").forEach((x) => x.classList.toggle("on", x === b)); strategy = b.dataset.v;
+};
+
+function setFile(f) {
+  pendingFile = f;
+  const title = $("#dropTitle");
+  if (f) { title.innerHTML = `<span class="file-name">${esc(f.name)}</span>`; textEl.value = ""; }
+  else title.textContent = t("in.drop");
+}
+function wireDrop(zone, input, onFiles) {
+  zone.onclick = () => input.click();
+  zone.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } };
+  input.onchange = () => { if (input.files.length) onFiles([...input.files]); input.value = ""; };
+  ["dragenter", "dragover"].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => zone.addEventListener(ev, () => zone.classList.remove("over")));
+  zone.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files.length) onFiles([...e.dataTransfer.files]); });
+}
+wireDrop($("#drop"), $("#file"), (fs) => { setFile(fs[0]); run(); });
+textEl.addEventListener("input", () => { if (pendingFile && textEl.value) setFile(null); });
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(); }
+  if (e.key === "Escape") closeWelcome();
+});
+runBtn.onclick = run;
+
+async function callExtract(file, text, strat) {
+  let res;
+  if (file) {
+    const fd = new FormData(); fd.append("file", file);
+    res = await fetch(`/extract/file?strategy=${strat}`, { method: "POST", body: fd });
+  } else {
+    res = await fetch(`/extract/text?strategy=${strat}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
+    });
+  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : res.statusText);
+  return data;
+}
+
+async function run() {
+  if (!pendingFile && !textEl.value.trim()) { toast(t("toast.empty")); return; }
+  runBtn.disabled = true; runBtn.innerHTML = `<span class="spinner"></span>${t("in.running")}`;
+  try {
+    const name = pendingFile ? pendingFile.name : (textEl.value.match(/(?:No|Numarası)\s*:\s*(\S+)/i)?.[1] || "text");
+    const data = await callExtract(pendingFile, textEl.value, strategy);
+    renderResult(data, name, true);
+    addHistory(name, data);
+  } catch (err) {
+    $("#result").innerHTML = `<div class="verdict bad"><div class="badge">${icon("x")}</div><div><h3>${t("toast.error")}</h3><p>${esc(err.message)}</p></div></div>`;
+  } finally {
+    runBtn.disabled = false; runBtn.innerHTML = `${icon("sparkle")}<span>${t("in.run")}</span>`;
+    if (innerWidth < 1000) $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function countUp(el, to, cur) {
+  const start = performance.now(), dur = 700;
+  const step = (now) => {
+    const p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = money(to * e, cur);
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function renderResult(r, name, animate) {
+  lastResult = { result: r, name };
+  const inv = r.invoice, cur = inv?.currency || "TRY";
+  const failed = r.checks.filter((c) => c.passed === false && !["vat_rates", "tax_id_checksum", "distinct_parties"].includes(c.id)).length;
+  const ok = inv && r.errors.length === 0;
+  let h = `<div class="reveal">`;
+  h += `<div class="verdict ${ok ? "ok" : "bad"}"><div class="badge">${icon(ok ? "check" : "x")}</div><div>
+    <h3>${ok ? t("v.ok") : inv ? t("v.bad") : t("v.fail")}</h3>
+    <p>${ok ? t("v.okSub") : inv ? t("v.badSub", { n: failed || r.errors.length }) : t("v.failSub")}</p></div>
+    ${inv ? `<div class="amount"><small>${t("v.payable")}</small><b id="payable">${money(inv.grand_total, cur)}</b></div>` : ""}</div>`;
+  h += `<div class="meta">${!inv || name !== inv.invoice_no ? `<span class="tag">${esc(name)}</span>` : ""}<span class="tag">extractor: ${esc(r.extractor)}</span>${inv ? `<span class="tag">${esc(inv.invoice_no)}</span><span class="tag">${esc(inv.issue_date)}</span>` : ""}</div>`;
+  const notes = [...r.errors.map((m) => `<li class="e">${esc(m)}</li>`), ...r.warnings.map((m) => `<li class="w">${esc(m)}</li>`)];
+  if (!inv && notes.length) h += `<ul class="notes">${notes.join("")}</ul>`;
+  if (!inv && status && !status.llm.reachable)
+    h += `<div class="check skip"><span class="ic">${icon("info")}</span><div>${esc(t("pop.off", { h: status.llm.host }))}<small><code>ollama pull ${esc(status.llm.model)}</code></small></div></div>`;
+  if (inv) {
+    h += `<div class="kpis">
+      <div class="kpi"><small>${t("k.subtotal")}</small><b>${money(inv.subtotal, cur)}</b></div>
+      <div class="kpi"><small>${t("k.vat")}</small><b>${money(inv.vat_total, cur)}</b></div>
+      <div class="kpi"><small>${t("k.items")}</small><b>${inv.items.length}</b></div>
+      <div class="kpi"><small>${t("k.time")}</small><b>${r.elapsed_ms ?? "–"} ms</b></div></div>`;
+    const party = (p, k) => `<div class="party"><small>${t(k)}</small><b>${esc(p.name)}</b><code>${esc(p.tax_office ?? "")}${p.tax_office ? " · " : ""}${esc(p.tax_id ?? "—")}</code></div>`;
+    h += `<div class="parties">${party(inv.seller, "p.seller")}${party(inv.buyer, "p.buyer")}</div>`;
+    h += `<div><div class="section-title">${t("sec.items")}</div><div class="table-wrap"><table><thead><tr><th>${t("t.item")}</th><th class="n">${t("t.qty")}</th><th class="n">${t("t.price")}</th><th class="n">${t("t.vat")}</th><th class="n">${t("t.total")}</th></tr></thead><tbody>
+      ${inv.items.map((i) => `<tr><td>${esc(i.description)}</td><td class="n">${esc(i.quantity)}</td><td class="n">${money(i.unit_price, cur)}</td><td class="n">%${i.vat_rate}</td><td class="n">${money(i.line_total, cur)}</td></tr>`).join("")}
+      </tbody></table></div></div>`;
+    if (r.vat_breakdown.length) {
+      const max = Math.max(...r.vat_breakdown.map((v) => Number(v.base)));
+      h += `<div><div class="section-title">${t("sec.vat")}</div>${r.vat_breakdown.map((v) =>
+        `<div class="vat-row"><b>%${v.rate}</b><div class="bar"><i style="width:${(Number(v.base) / max) * 100}%"></i></div><span class="n">${money(v.base, cur)} → <b>${money(v.vat, cur)}</b></span></div>`).join("")}</div>`;
+    }
+    h += `<div><div class="section-title">${t("sec.checks")}</div><div class="checks">${r.checks.map((c, i) => {
+      const soft = ["vat_rates", "tax_id_checksum", "distinct_parties"].includes(c.id);
+      const cls = c.passed === null ? "skip" : c.passed ? "pass" : soft ? "warn" : "fail";
+      const ic = { pass: "check", fail: "x", warn: "alert", skip: "minus" }[cls];
+      const detail = c.passed === null ? t("c.skipped") : c.passed ? "" : c.detail;
+      return `<div class="check ${cls}" style="animation-delay:${0.05 * i}s"><span class="ic">${icon(ic)}</span><div>${t("c." + c.id)}${detail ? `<small>${esc(detail)}</small>` : ""}</div></div>`;
+    }).join("")}</div></div>`;
+    const extraWarn = r.warnings.filter((w) => !r.checks.some((c) => c.detail && c.detail.includes(w)));
+    if (extraWarn.length) h += `<ul class="notes" style="margin-top:14px">${extraWarn.map((m) => `<li class="w">${esc(m)}</li>`).join("")}</ul>`;
+  }
+  h += `<div class="actions">
+    <button class="btn btn-ghost" data-act="copy">${icon("copy")}${t("a.copy")}</button>
+    <button class="btn btn-ghost" data-act="json">${icon("download")}${t("a.json")}</button>
+    ${inv ? `<button class="btn btn-ghost" data-act="csv">${icon("download")}${t("a.csv")}</button>` : ""}</div>`;
+  h += `<details><summary>${t("a.raw")}</summary><pre class="json">${esc(JSON.stringify(r, null, 2))}</pre></details></div>`;
+  const box = $("#result"); box.innerHTML = h;
+  if (animate && inv) countUp($("#payable"), Number(inv.grand_total), cur);
+  $$("[data-act]", box).forEach((b) => (b.onclick = () => resultAction(b.dataset.act, r, name)));
+}
+
+/* ---------------- Export ---------------- */
+function download(filename, content, type) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: filename });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const csvCell = (v) => { const s = String(v ?? ""); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+const toCsv = (rows) => "﻿" + rows.map((r) => r.map(csvCell).join(";")).join("\r\n");  // BOM + ';' -> Excel TR uyumlu
+function itemsCsv(inv) {
+  const head = ["invoice_no", "issue_date", "seller", "seller_tax_id", "buyer", "buyer_tax_id", "description", "quantity", "unit_price", "vat_rate", "line_total", "currency"];
+  return toCsv([head, ...inv.items.map((i) => [inv.invoice_no, inv.issue_date, inv.seller.name, inv.seller.tax_id, inv.buyer.name, inv.buyer.tax_id, i.description, i.quantity, i.unit_price, i.vat_rate, i.line_total, inv.currency])]);
+}
+async function resultAction(act, r, name) {
+  const base = (r.invoice?.invoice_no || name).replace(/[^\w.-]+/g, "_");
+  if (act === "copy") {
+    try { await navigator.clipboard.writeText(JSON.stringify(r, null, 2)); toast(t("toast.copied")); }
+    catch { download(base + ".json", JSON.stringify(r, null, 2), "application/json"); }
+  }
+  if (act === "json") download(base + ".json", JSON.stringify(r, null, 2), "application/json");
+  if (act === "csv") download(base + ".csv", itemsCsv(r.invoice), "text/csv;charset=utf-8");
+}
+
+/* ---------------- History ---------------- */
+function addHistory(name, result) {
+  const list = store.get("history", []);
+  list.unshift({ id: Date.now(), ts: Date.now(), name, result });
+  store.set("history", list.slice(0, 50));
+}
+function ago(ts) {
+  const m = Math.round((Date.now() - ts) / 60000);
+  if (m < 1) return t("time.now"); if (m < 60) return t("time.min", { n: m });
+  const h = Math.round(m / 60); if (h < 24) return t("time.hour", { n: h });
+  return t("time.day", { n: Math.round(h / 24) });
+}
+function renderHistory() {
+  const list = store.get("history", []), box = $("#hout");
+  if (!list.length) { box.innerHTML = `<div class="empty"><div class="orb">${icon("clock")}</div><b>${t("h.empty")}</b></div>`; return; }
+  box.innerHTML = `<div class="row-actions"><button class="btn btn-ghost" id="hclear">${icon("trash")}${t("h.clear")}</button></div>
+    <div class="table-wrap"><table><thead><tr><th>${t("h.when")}</th><th>${t("b.file")}</th><th>${t("b.seller")}</th><th class="n">${t("b.total")}</th><th>${t("b.status")}</th></tr></thead><tbody>
+    ${list.map((e, i) => { const inv = e.result.invoice, ok = inv && !e.result.errors.length;
+      return `<tr class="clickable" data-i="${i}"><td>${ago(e.ts)}</td><td>${esc(e.name)}</td><td>${esc(inv?.seller.name ?? "—")}</td><td class="n">${inv ? money(inv.grand_total, inv.currency) : "—"}</td><td><span class="pill-state ${ok ? "ok" : "bad"}">${ok ? t("b.ok") : t("b.fail")}</span></td></tr>`; }).join("")}
+    </tbody></table></div>`;
+  $("#hclear").onclick = () => { store.set("history", []); renderHistory(); toast(t("toast.cleared")); };
+  $$("tr[data-i]", box).forEach((tr) => (tr.onclick = () => { const e = list[+tr.dataset.i]; renderResult(e.result, e.name, true); show("extract"); }));
+}
+
+/* ---------------- Batch ---------------- */
+let batchState = [];
+wireDrop($("#bdrop"), $("#bfiles"), runBatch);
+async function runBatch(files) {
+  files = files.slice(0, 20);
+  batchState = files.map((f) => ({ name: f.name, result: null }));
+  const prog = $("#bprog"); prog.hidden = false; prog.firstElementChild.style.width = "0";
+  renderBatch();
+  for (let i = 0; i < files.length; i++) {
+    try { batchState[i].result = await callExtract(files[i], "", "auto"); addHistory(files[i].name, batchState[i].result); }
+    catch (err) { batchState[i].result = { invoice: null, extractor: "-", errors: [err.message], warnings: [], checks: [], vat_breakdown: [] }; }
+    prog.firstElementChild.style.width = `${((i + 1) / files.length) * 100}%`;
+    renderBatch();
+  }
+}
+function renderBatch() {
+  const done = batchState.filter((b) => b.result), ok = done.filter((b) => b.result.invoice && !b.result.errors.length);
+  const totals = {};
+  ok.forEach((b) => { const c = b.result.invoice.currency; totals[c] = (totals[c] || 0) + Number(b.result.invoice.grand_total); });
+  const totalStr = Object.entries(totals).map(([c, v]) => money(v, c)).join(" + ") || "—";
+  $("#bout").innerHTML = `<div class="stat-grid" style="margin-top:20px">
+      <div class="glass stat"><small>${t("b.docs")}</small><b>${done.length}/${batchState.length}</b></div>
+      <div class="glass stat"><small>${t("b.ok")}</small><b style="color:var(--accent)">${ok.length}</b></div>
+      <div class="glass stat"><small>${t("b.fail")}</small><b style="color:${done.length - ok.length ? "var(--bad)" : "inherit"}">${done.length - ok.length}</b></div>
+      <div class="glass stat"><small>${t("b.total")}</small><b style="font-size:20px">${totalStr}</b></div></div>
+    <div class="glass card"><div class="row-actions"><button class="btn btn-ghost" id="bcsv" ${ok.length ? "" : "disabled"}>${icon("download")}${t("b.export")}</button></div>
+    <div class="table-wrap"><table><thead><tr><th>${t("b.file")}</th><th>${t("b.no")}</th><th>${t("b.seller")}</th><th>${t("b.date")}</th><th class="n">${t("b.total")}</th><th>${t("b.status")}</th></tr></thead><tbody>
+    ${batchState.map((b, i) => { const r = b.result, inv = r?.invoice, good = inv && !r.errors.length;
+      const state = !r ? `<span class="pill-state wait">${t("b.wait")}</span>` : `<span class="pill-state ${good ? "ok" : "bad"}">${good ? t("b.ok") : t("b.fail")}</span>`;
+      return `<tr class="${r ? "clickable" : ""}" data-b="${i}"><td>${esc(b.name)}</td><td>${esc(inv?.invoice_no ?? "—")}</td><td>${esc(inv?.seller.name ?? "—")}</td><td>${esc(inv?.issue_date ?? "—")}</td><td class="n">${inv ? money(inv.grand_total, inv.currency) : "—"}</td><td>${state}</td></tr>`; }).join("")}
+    </tbody></table></div></div>`;
+  $$("tr[data-b]").forEach((tr) => (tr.onclick = () => { const b = batchState[+tr.dataset.b]; if (b.result) { renderResult(b.result, b.name, true); show("extract"); } }));
+  const csvBtn = $("#bcsv");
+  if (csvBtn) csvBtn.onclick = () => {
+    const head = ["file", "invoice_no", "issue_date", "seller", "seller_tax_id", "buyer", "buyer_tax_id", "subtotal", "vat_total", "grand_total", "currency", "status"];
+    const rows = batchState.filter((b) => b.result).map((b) => { const i = b.result.invoice, good = i && !b.result.errors.length;
+      return [b.name, i?.invoice_no, i?.issue_date, i?.seller.name, i?.seller.tax_id, i?.buyer.name, i?.buyer.tax_id, i?.subtotal, i?.vat_total, i?.grand_total, i?.currency, good ? "balanced" : "review"]; });
+    download("mizan-batch.csv", toCsv([head, ...rows]), "text/csv;charset=utf-8");
+  };
+}
+
+/* ---------------- About ---------------- */
+const FEATURES = [["shield", "verify"], ["bolt", "cost"], ["sparkle", "any"], ["layers", "batch"], ["lock", "private"], ["code", "api"]];
+function renderFeatures() {
+  const html = FEATURES.map(([ic, k]) => `<div class="feature">${icon(ic)}<b>${t("f." + k)}</b><p>${t("f." + k + "D")}</p></div>`).join("");
+  $("#featureGrid").innerHTML = html;
+  $("#welcomeFeatures").innerHTML = FEATURES.slice(0, 4).map(([ic, k]) => `<div class="feature">${icon(ic)}<b>${t("f." + k)}</b><p>${t("f." + k + "D")}</p></div>`).join("");
+}
+function renderApi() {
+  const o = location.origin;
+  $("#apiSnippet").textContent = `# ${lang === "tr" ? "Tek dosya" : "Single file"}
+curl -F "file=@fatura.pdf" "${o}/extract/file?strategy=auto"
+
+# ${lang === "tr" ? "Toplu" : "Batch"}
+curl -F "files=@a.pdf" -F "files=@b.pdf" "${o}/extract/batch"
+
+# Python
+import httpx
+r = httpx.post("${o}/extract/text", json={"text": open("fatura.txt").read()})
+print(r.json()["invoice"]["grand_total"])`;
+}
+
+/* ---------------- Welcome ---------------- */
+function openWelcome() { $("#welcome").classList.add("open"); $("#wTry").focus(); }
+function closeWelcome() {
+  if (!$("#welcome").classList.contains("open")) return;
+  $("#welcome").classList.remove("open");
+  if ($("#wHide").checked) store.set("welcomed", true);
+}
+$("#helpBtn").onclick = openWelcome;
+$("#wClose").onclick = closeWelcome;
+$("#welcome").onclick = (e) => { if (e.target.id === "welcome") closeWelcome(); };
+$("#wTry").onclick = () => { closeWelcome(); show("extract"); loadSample("std"); };
+$("#wTour").onclick = () => { closeWelcome(); show("about"); };
+
+/* ---------------- Boot ---------------- */
+applyI18n();
+loadStatus();
+if (!store.get("welcomed", false)) setTimeout(openWelcome, 350);
 </script>
 </body>
 </html>
